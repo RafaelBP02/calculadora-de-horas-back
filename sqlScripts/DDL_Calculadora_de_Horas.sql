@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS CALCULADORA_HORAS.ALARM_CONFIG (
     work_entry TIME NOT NULL,
     interval_beginning TIME NOT NULL,
     interval_end TIME NOT NULL,
-    work_exit TIME NOT NULL,
+    work_end TIME NOT NULL,
     workload INTEGER NOT NULL,
     user_id INTEGER NOT NULL,
     

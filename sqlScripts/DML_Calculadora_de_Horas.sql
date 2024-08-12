@@ -17,8 +17,8 @@ INSERT INTO USERS(username, passworld) VALUES(
 	'fulano', '!@senha@!'
 );
 
-INSERT INTO ALARM_CONFIG(work_entry,interval_beginning,interval_end,workload,user_id) VALUES(
-	'09:00:00', '13:00:00', '14:00:00', 8, 1
+INSERT INTO ALARM_CONFIG(work_entry,interval_beginning,interval_end,work_end,workload,user_id) VALUES(
+	'09:00:00', '13:00:00', '14:00:00','18:00:00', 8, 1
 );
 
 -- Seleção de dados
