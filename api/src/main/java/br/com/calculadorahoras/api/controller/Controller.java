@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-
 @RestController
 @CrossOrigin(origins = "*")
 public class Controller {
@@ -26,10 +25,10 @@ public class Controller {
     private Repo action;
 
     @GetMapping("/")
-    public ResponseEntity<Iterable<AlertConfig>> selectAllAlarmConfigs(){
-        Iterable<AlertConfig> response =  action.findAll();
+    public ResponseEntity<Iterable<AlertConfig>> selectAllAlarmConfigs() {
+        Iterable<AlertConfig> response = action.findAll();
         if (!response.iterator().hasNext()) {
-            //retorna status 500 se a colecao de elementos estiver vazia
+            // retorna status 500 se a colecao de elementos estiver vazia
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         } else {
             return new ResponseEntity<>(response, HttpStatus.OK);
@@ -37,29 +36,34 @@ public class Controller {
     }
 
     @GetMapping("/{id}")
-    public AlertConfig selectAlarmConfig(@PathVariable Integer id){
-       return action.findById(id).orElseThrow(() ->
-            new ResponseStatusException(HttpStatus.NOT_FOUND,"Dado inexistente. Alerta não foi configurado")
-       );
+    public ResponseEntity<AlertConfig> selectAlarmConfig(@PathVariable Integer id) {
+        AlertConfig response = action.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                "Dado inexistente. Alerta não foi configurado"));
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @PostMapping("/")
-    public AlertConfig registerAlarmConfig(@RequestBody AlertConfig ac){
-        return action.save(ac);
+    public ResponseEntity<AlertConfig> registerAlarmConfig(@RequestBody AlertConfig ac) {
+        try {
+            AlertConfig savedConfig = action.save(ac);
+            return new ResponseEntity<>(savedConfig, HttpStatus.CREATED);
+        } catch (Exception e) {
+            // Tratamento de erro genérico para status 500
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @PutMapping("/")
-    public AlertConfig editAlarmConfig(@RequestBody AlertConfig ac){
-        return action.save(ac);
-    }
-
-    @ExceptionHandler(ResponseStatusException.class)
-    public ResponseEntity<String> handleNotFound(ResponseStatusException ex) {
-        return new ResponseEntity<>(ex.getReason(), ex.getStatusCode());
-    }
-
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<String> handleInternalServerError(RuntimeException ex) {
-        return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+    public ResponseEntity<AlertConfig> editAlarmConfig(@RequestBody AlertConfig ac) {
+        try {
+            if (!action.existsById(ac.getId())) {
+                // Se o ID não existir, retorna 404
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+            AlertConfig updatedConfig = action.save(ac);
+            return new ResponseEntity<>(updatedConfig, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }
