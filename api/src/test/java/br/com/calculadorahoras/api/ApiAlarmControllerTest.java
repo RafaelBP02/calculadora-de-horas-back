@@ -1,20 +1,16 @@
 package br.com.calculadorahoras.api;
 
-import br.com.calculadorahoras.api.controller.Controller;
 import br.com.calculadorahoras.api.model.AlertConfig;
 import br.com.calculadorahoras.api.repo.Repo;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -48,22 +44,13 @@ public class ApiAlarmControllerTest {
         ac.setWorkEnd(Time.valueOf("18:00:00"));
         ac.setUser_id(1);
 
-        AlertConfig ac2 = new AlertConfig();
-        ac2.setId(2);
-        ac2.setWorkEntry(Time.valueOf("09:00:00"));
-        ac2.setIntervalBeginning(Time.valueOf("13:00:00"));
-        ac2.setIntervalEnd(Time.valueOf("14:00:00"));
-        ac2.setWorkEnd(Time.valueOf("18:00:00"));
-        ac2.setUser_id(1);
-
         Mockito.when(repo.findById(1)).thenReturn(Optional.of(ac));
-        Mockito.when(repo.findById(2)).thenReturn(Optional.of(ac2));
     }
 
     @Test
     public void shouldFindConfigById() throws Exception{
         
-        mockMvc.perform(MockMvcRequestBuilders.get("/{id}", 2))
+        mockMvc.perform(MockMvcRequestBuilders.get("/{id}", 1))
                 .andExpect(MockMvcResultMatchers.status().isOk());
 
     }
@@ -76,5 +63,11 @@ public class ApiAlarmControllerTest {
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isNotFound());
         }
+
+    @Test
+    public void shouldFindAllConfigurtions() throws Exception{
+        mockMvc.perform(MockMvcRequestBuilders.get("/"))
+                .andExpect(MockMvcResultMatchers.status().isOk());
+    }
 
 }
