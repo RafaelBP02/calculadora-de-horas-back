@@ -16,6 +16,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.sql.Time;
+import java.util.ArrayList;
 import java.util.Optional;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -69,5 +70,15 @@ public class ApiAlarmControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.get("/"))
                 .andExpect(MockMvcResultMatchers.status().isOk());
     }
+
+    @Test
+    public void shouldNotFindAllConfigurtions() throws Exception{
+        given(repo.findAll()).willReturn(new ArrayList<AlertConfig>());
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/"))
+                .andExpect(MockMvcResultMatchers.status().isInternalServerError())
+                .andExpect(content().json("{\"errorMessage\":\"Erro na comunicação com o servidor. Por favor tente mais tarde\"}"));
+    }
+
 
 }
