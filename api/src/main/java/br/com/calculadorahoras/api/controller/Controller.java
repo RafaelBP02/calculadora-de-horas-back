@@ -29,7 +29,7 @@ public class Controller {
         Iterable<AlertConfig> response = action.findAll();
         if (!response.iterator().hasNext()) {
             // retorna status 500 se a colecao de elementos estiver vazia
-            return new ResponseEntity<>(new ErrorResponse() , HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ErrorResponse(), HttpStatus.INTERNAL_SERVER_ERROR);
         } else {
             return new ResponseEntity<Iterable<AlertConfig>>(response, HttpStatus.OK);
         }
@@ -46,10 +46,12 @@ public class Controller {
     public ResponseEntity<?> registerAlarmConfig(@RequestBody AlertConfig ac) {
         try {
             AlertConfig savedConfig = action.save(ac);
-            return new ResponseEntity<AlertConfig>(savedConfig, HttpStatus.CREATED);
+            return new ResponseEntity<AlertConfig>(savedConfig, HttpStatus.OK);
         } catch (Exception e) {
             // Tratamento de erro genérico para status 500
-            return new ResponseEntity<>(new ErrorResponse("Não foi possível salvar sua configuração. Erro na comunicação com o servidor"), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(
+                    new ErrorResponse("Não foi possível salvar sua configuração. Erro na comunicação com o servidor"),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -58,12 +60,13 @@ public class Controller {
         try {
             if (!action.existsById(ac.getId())) {
                 // Se o ID não existir, retorna 404
-                return new ResponseEntity<>(new ErrorResponse("Essa configuração de alarme não existe"), HttpStatus.NOT_FOUND);
+                return new ResponseEntity<>(new ErrorResponse("Essa configuração de alarme não existe"),
+                        HttpStatus.NOT_FOUND);
             }
             AlertConfig updatedConfig = action.save(ac);
             return new ResponseEntity<AlertConfig>(updatedConfig, HttpStatus.OK);
         } catch (Exception e) {
-            return new ResponseEntity<>(new ErrorResponse() , HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ErrorResponse(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }
