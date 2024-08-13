@@ -11,5 +11,8 @@ public class ErrorResponse {
     public ErrorResponse(String message) {
         this.errorMessage = message;
     }
+    public ErrorResponse() {
+        this.errorMessage = "Erro na comunicação com o servidor. Por favor tente mais tarde";
+    }
 }
 
