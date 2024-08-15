@@ -1,15 +1,13 @@
 package br.com.calculadorahoras.api.service;
 
-import java.sql.Time;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
-import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import br.com.calculadorahoras.api.controller.AlertController;
 import br.com.calculadorahoras.api.model.AlertConfig;
 import br.com.calculadorahoras.api.repo.Repo;
 
@@ -17,6 +15,9 @@ import br.com.calculadorahoras.api.repo.Repo;
 public class AlertService {
     @Autowired
     private Repo repo;
+
+    @Autowired
+    private AlertController alertController;
 
     @Scheduled(fixedRate = 60000) // Verify each minute
     public void verificarHorariosDePonto() {
@@ -32,7 +33,7 @@ public class AlertService {
 
     public void enviarAlerta(int userId, String mensagem) {
         System.out.println("Enviando alerta para o usuário ID " + userId + ": " + mensagem);
-        // TODO LOGICA PARA ENVIAR ALERTA NO FRONT
+        alertController.sendAlert(userId, mensagem);
     }
 
     private void notificaUsuario(AlertConfig alert, LocalTime now) {
