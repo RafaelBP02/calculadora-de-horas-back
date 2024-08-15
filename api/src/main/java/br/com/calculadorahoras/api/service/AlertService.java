@@ -1,6 +1,8 @@
 package br.com.calculadorahoras.api.service;
 
 import java.sql.Time;
+import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
@@ -19,7 +21,7 @@ public class AlertService {
     @Scheduled(fixedRate = 60000) // Verify each minute
     public void verificarHorariosDePonto() {
         Iterable<AlertConfig> savedAlerts = repo.findAll();
-        Time now = new Time(new Date().getTime());;
+        LocalTime now = LocalTime.now();
 
         for (AlertConfig alert : savedAlerts) {
             // enviarAlerta(alert.getId(), "Teste do scheduler da notificacao!");
@@ -30,29 +32,24 @@ public class AlertService {
 
     public void enviarAlerta(int userId, String mensagem) {
         System.out.println("Enviando alerta para o usuário ID " + userId + ": " + mensagem);
-        //TODO LOGICA PARA ENVIAR ALERTA NO FRONT
+        // TODO LOGICA PARA ENVIAR ALERTA NO FRONT
     }
 
-    private void notificaUsuario(AlertConfig alert, Time now) {
-        if (deveAcionarAlerta(alert.getWorkEntry(), now)) {
+    private void notificaUsuario(AlertConfig alert, LocalTime now) {
+        if (deveAcionarAlerta(alert.getWorkEntry().toLocalTime(), now)) {
             enviarAlerta(alert.getId(), "Hora de bater o ponto de entrada!");
-        }
-        else if (deveAcionarAlerta(alert.getIntervalBeginning(), now)) {
+        } else if (deveAcionarAlerta(alert.getIntervalBeginning().toLocalTime(), now)) {
             enviarAlerta(alert.getId(), "Hora de iniciar o intervalo!");
-        }
-        else if (deveAcionarAlerta(alert.getIntervalEnd(), now)) {
+        } else if (deveAcionarAlerta(alert.getIntervalEnd().toLocalTime(), now)) {
             enviarAlerta(alert.getId(), "Hora de terminar o intervalo!");
-        }
-        else if (deveAcionarAlerta(alert.getWorkEnd(), now)) {
+        } else if (deveAcionarAlerta(alert.getWorkEnd().toLocalTime(), now)) {
             enviarAlerta(alert.getId(), "Hora de encerrar o expediente!");
         }
     }
 
-    private boolean deveAcionarAlerta(Time ponto, Time now) {
-        long diffInMillies = ponto.getTime() - now.getTime();
-        long diffInMinutes = TimeUnit.MILLISECONDS.toMinutes(diffInMillies);
+    private boolean deveAcionarAlerta(LocalTime ponto, LocalTime now) {
+        long diffInMinutes = Math.abs(ChronoUnit.MINUTES.between(now, ponto));
         return diffInMinutes > 0 && diffInMinutes <= 2;
     }
 
-    
 }
