@@ -26,25 +26,30 @@ public class AlertService {
 
         for (AlertConfig alert : savedAlerts) {
             // enviarAlerta(alert.getId(), "Teste do scheduler da notificacao!");
-
             notificaUsuario(alert, now);
         }
     }
 
     public void enviarAlerta(int userId, String mensagem) {
-        System.out.println("Enviando alerta para o usuário ID " + userId + ": " + mensagem);
-        alertController.sendAlert(userId, mensagem);
+        if (alertController.hasEmitter(userId)) {
+            System.out.println("Enviando alerta para o usuário ID " + userId + ": " + mensagem);
+            alertController.sendAlert(userId, mensagem);
+        } else {
+            System.out.println("Nenhum SseEmitter encontrado para o usuário ID " + userId);
+        }
     }
 
     private void notificaUsuario(AlertConfig alert, LocalTime now) {
+        System.out.println("Verifica se deve alertar o usuário ID " + alert.getUser_id());
+
         if (deveAcionarAlerta(alert.getWorkEntry().toLocalTime(), now)) {
-            enviarAlerta(alert.getId(), "Hora de bater o ponto de entrada!");
+            enviarAlerta(alert.getUser_id(), "Hora de bater o ponto de entrada!");
         } else if (deveAcionarAlerta(alert.getIntervalBeginning().toLocalTime(), now)) {
-            enviarAlerta(alert.getId(), "Hora de iniciar o intervalo!");
+            enviarAlerta(alert.getUser_id(), "Hora de iniciar o intervalo!");
         } else if (deveAcionarAlerta(alert.getIntervalEnd().toLocalTime(), now)) {
-            enviarAlerta(alert.getId(), "Hora de terminar o intervalo!");
+            enviarAlerta(alert.getUser_id(), "Hora de terminar o intervalo!");
         } else if (deveAcionarAlerta(alert.getWorkEnd().toLocalTime(), now)) {
-            enviarAlerta(alert.getId(), "Hora de encerrar o expediente!");
+            enviarAlerta(alert.getUser_id(), "Hora de encerrar o expediente!");
         }
     }
 
