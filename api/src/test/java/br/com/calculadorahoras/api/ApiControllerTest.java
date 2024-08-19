@@ -29,7 +29,7 @@ import static org.mockito.BDDMockito.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-public class ApiAlarmControllerTest {
+public class ApiControllerTest {
 
     @Autowired
     private MockMvc mockMvc;

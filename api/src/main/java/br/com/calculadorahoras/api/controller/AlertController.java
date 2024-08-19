@@ -12,6 +12,10 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+//referencias
+// 1. <https://medium.com/@miguelangelperezdiaz444/exploring-sse-server-sent-events-real-time-updates-for-your-applications-5264a461ce6f>
+// 2. <https://github.com/hantsy/angular-spring-sse-sample/blob/master/GUIDE.md>
+
 @RestController
 @CrossOrigin(origins = "*")
 public class AlertController {
@@ -26,16 +30,17 @@ public class AlertController {
         emitter.onTimeout(() -> emitters.remove(userId));
 
         // Keep-alive logic
-        new Thread(() -> {
-            try {
-                while (emitters.containsKey(userId)) {
-                    emitter.send(SseEmitter.event().name("keep-alive").data("keep-alive"));
-                    Thread.sleep(30000); // Enviar a cada 30 segundos
-                }
-            } catch (Exception e) {
-                emitters.remove(userId);
-            }
-        }).start();
+        // DESCOMENTAR SE O FRONT ESTIVER TOMANDO TIMEOUT
+        // new Thread(() -> {
+        //     try {
+        //         while (emitters.containsKey(userId)) {
+        //             emitter.send(SseEmitter.event().name("keep-alive").data("keep-alive"));
+        //             Thread.sleep(30000); // Enviar a cada 30 segundos
+        //         }
+        //     } catch (Exception e) {
+        //         emitters.remove(userId);
+        //     }
+        // }).start();
 
         return emitter;
     }
