@@ -19,7 +19,7 @@ public class AlertService {
     @Autowired
     private AlertController alertController;
 
-    @Scheduled(fixedRate = 60000) // Verify each minute
+    @Scheduled(fixedRate = 30000) // Verify each minute
     public void verificarHorariosDePonto() {
         Iterable<AlertConfig> savedAlerts = repo.findAll();
         LocalTime now = LocalTime.now();

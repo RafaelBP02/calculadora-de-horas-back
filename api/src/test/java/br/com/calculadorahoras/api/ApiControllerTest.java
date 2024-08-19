@@ -49,7 +49,7 @@ public class ApiControllerTest {
         ac.setUser_id(1);
 
         Mockito.when(repo.findById(1)).thenReturn(Optional.of(ac));
-        Mockito.when(repo.findAll()).thenReturn( Arrays.asList(ac));
+        Mockito.doReturn(Arrays.asList(ac)).when(repo).findAll();
         Mockito.when(repo.existsById(1)).thenReturn(Boolean.TRUE);
         Mockito.when(repo.save(ac)).thenReturn(ac);
     }
