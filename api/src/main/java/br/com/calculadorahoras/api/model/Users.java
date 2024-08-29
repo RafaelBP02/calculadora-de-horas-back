@@ -1,7 +1,5 @@
 package br.com.calculadorahoras.api.model;
 
-import java.sql.Time;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -29,7 +27,7 @@ public class Users {
     private String password;
 
     @ManyToOne
-    @JoinColumn(name = "role_id", nullable = false) // 'role_id' é a coluna na tabela 'USERS'
+    @JoinColumn(name = "role_id", nullable = false)
     private Roles role;
 
 }
