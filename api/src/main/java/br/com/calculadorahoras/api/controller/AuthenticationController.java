@@ -1,16 +1,17 @@
 package br.com.calculadorahoras.api.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RestController;
 
+import br.com.calculadorahoras.api.model.Roles;
 import br.com.calculadorahoras.api.model.Users;
+import br.com.calculadorahoras.api.repo.RoleRepo;
+import br.com.calculadorahoras.api.repo.UserRepo;
+
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -20,24 +21,24 @@ import org.springframework.web.bind.annotation.RequestBody;
 @CrossOrigin(origins = "*")
 public class AuthenticationController {
 
-    private AuthenticationManager  authenticationManager;
+    @Autowired
+    private UserRepo userRepo;
 
-    @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody Users user) {
-        try{
-            Authentication authentication =  authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword())
-            );
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-            return new ResponseEntity<>("Login efetuado com sucesso",HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>("Usuario nao encontrado",HttpStatus.NOT_FOUND);
-        }
-    }
+    @Autowired
+    private RoleRepo roleRepo;
 
-    @PostMapping("/signup")
-    public ResponseEntity<String> signup(@RequestBody Users user) {
-        return new ResponseEntity<>("Novo registro criado", HttpStatus.CREATED);
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @PostMapping( "/signup")
+    public ResponseEntity<Users> createUser(@RequestBody Users user) {
+        Roles role = roleRepo.findById(2)
+            .orElseThrow(() -> new IllegalArgumentException("Role não encontrado"));
+        
+        user.setRole(role);
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        Users savedConfig = userRepo.save(user);
+        return new ResponseEntity<>(savedConfig, HttpStatus.OK);
     }
 
 }
