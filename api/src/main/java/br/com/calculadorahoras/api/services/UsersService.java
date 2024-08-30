@@ -31,8 +31,10 @@ public class UsersService implements UserDetailsService{
                 .password(userObj.getPassword())
                 .build();
         }
+        else{
+            throw new UsernameNotFoundException(username);
+        }
 
-        throw new UsernameNotFoundException("Usuário não encontrado, faça cadastro");
 
     }
 
