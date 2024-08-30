@@ -6,7 +6,9 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -44,34 +46,33 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain securityFilterChain (HttpSecurity http) throws Exception {
         return http
-                .csrf(csrf -> csrf.disable())
-                .formLogin(form -> {
-                    form.loginPage("/login").permitAll();
+                .csrf(AbstractHttpConfigurer::disable)
+                .formLogin(form -> { 
+                    form.loginPage("/").permitAll();
                 })
                 .authorizeHttpRequests(registry -> {
-                    registry.requestMatchers("/", "/login", "/calculadora").permitAll();
+                    registry.requestMatchers("/", "/signup").permitAll();
                     registry.anyRequest().authenticated();
                 })
                 .httpBasic(withDefaults())
                 .build();
     }    
 
-    @SuppressWarnings("deprecation")
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return NoOpPasswordEncoder.getInstance();
+        return new BCryptPasswordEncoder();
     }
 
-    @Bean
-    public WebMvcConfigurer corsConfigurer() {
-        return new WebMvcConfigurer() {
-            @Override
-            public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**")
-                        .allowedOrigins("http://localhost:4200")
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS");
-            }
-        };
-    }
+    // @Bean
+    // public WebMvcConfigurer corsConfigurer() {
+    //     return new WebMvcConfigurer() {
+    //         @Override
+    //         public void addCorsMappings(CorsRegistry registry) {
+    //             registry.addMapping("/**")
+    //                     .allowedOrigins("http://localhost:4200")
+    //                     .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS");
+    //         }
+    //     };
+    // }
 
 }
