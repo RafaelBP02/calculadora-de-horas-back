@@ -32,8 +32,6 @@ public class Controller {
             // retorna status 500 se a colecao de elementos estiver vazia
             return new ResponseEntity<>(new ErrorResponse(), HttpStatus.INTERNAL_SERVER_ERROR);
         } else {
-            System.out.println("lista");
-            System.out.println(response.toString());
             return ResponseEntity.ok(response);
         }
     }
