@@ -13,6 +13,7 @@ import br.com.calculadorahoras.api.model.Roles;
 import br.com.calculadorahoras.api.model.Users;
 import br.com.calculadorahoras.api.repo.RoleRepo;
 import br.com.calculadorahoras.api.repo.UserRepo;
+import br.com.calculadorahoras.api.services.TokenService;
 
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -22,6 +23,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 @RestController
 @CrossOrigin(origins = "*")
 public class AuthenticationController {
+
+    @Autowired
+    private TokenService tokenService;
 
     @Autowired
     private UserRepo userRepo;
@@ -55,7 +59,9 @@ public class AuthenticationController {
         var userPassword = new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword());
         var auth = this.authenticationManager.authenticate(userPassword);
 
-        return ResponseEntity.ok().build();
+        var token = tokenService.generateToken((Users) auth.getPrincipal());
+
+        return ResponseEntity.ok(new String(token));
     }
 
 }
