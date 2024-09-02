@@ -3,6 +3,8 @@ package br.com.calculadorahoras.api.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RestController;
@@ -30,15 +32,30 @@ public class AuthenticationController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @PostMapping( "/signup")
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
+    @PostMapping("/auth/signup")
     public ResponseEntity<Users> createUser(@RequestBody Users user) {
-        Roles role = roleRepo.findById(2)
-            .orElseThrow(() -> new IllegalArgumentException("Role não encontrado"));
-        
-        user.setRole(role);
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        Users savedConfig = userRepo.save(user);
-        return new ResponseEntity<>(savedConfig, HttpStatus.OK);
+        if(this.userRepo.findByUsername(user.getUsername()) != null)
+            return ResponseEntity.badRequest().build();
+        else{
+            Roles role = roleRepo.findById(2)
+                .orElseThrow(() -> new IllegalArgumentException("Role não encontrado"));
+            
+            user.setRole(role);
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+            Users savedConfig = userRepo.save(user);
+            return new ResponseEntity<>(savedConfig, HttpStatus.OK);
+        }
+    }
+
+    @PostMapping("/auth/login")
+    public ResponseEntity<?> login(@RequestBody Users user) {
+        var userPassword = new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword());
+        var auth = this.authenticationManager.authenticate(userPassword);
+
+        return ResponseEntity.ok().build();
     }
 
 }
