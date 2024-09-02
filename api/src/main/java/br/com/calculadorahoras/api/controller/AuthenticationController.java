@@ -49,8 +49,10 @@ public class AuthenticationController {
             
             user.setRole(role);
             user.setPassword(passwordEncoder.encode(user.getPassword()));
-            Users savedConfig = userRepo.save(user);
-            return new ResponseEntity<>(savedConfig, HttpStatus.OK);
+
+            this.userRepo.save(user);
+
+            return ResponseEntity.ok().build();
         }
     }
 
@@ -61,7 +63,7 @@ public class AuthenticationController {
 
         var token = tokenService.generateToken((Users) auth.getPrincipal());
 
-        return ResponseEntity.ok(new String(token));
+        return ResponseEntity.ok(token);
     }
 
 }

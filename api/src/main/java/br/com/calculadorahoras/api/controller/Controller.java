@@ -16,22 +16,25 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 @RestController
-@CrossOrigin(origins = "*")
+@RequestMapping("alarms")
 public class Controller {
 
     @Autowired
     private Repo action;
 
-    @GetMapping("/")
+    @GetMapping
     public ResponseEntity<?> selectAllAlarmConfigs() {
         Iterable<AlertConfig> response = action.findAll();
         if (!response.iterator().hasNext()) {
             // retorna status 500 se a colecao de elementos estiver vazia
             return new ResponseEntity<>(new ErrorResponse(), HttpStatus.INTERNAL_SERVER_ERROR);
         } else {
-            return new ResponseEntity<Iterable<AlertConfig>>(response, HttpStatus.OK);
+            System.out.println("lista");
+            System.out.println(response.toString());
+            return ResponseEntity.ok(response);
         }
     }
 
@@ -42,7 +45,7 @@ public class Controller {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @PostMapping("/")
+    @PostMapping
     public ResponseEntity<?> registerAlarmConfig(@RequestBody AlertConfig ac) {
         try {
             AlertConfig savedConfig = action.save(ac);
@@ -55,7 +58,7 @@ public class Controller {
         }
     }
 
-    @PutMapping("/")
+    @PutMapping
     public ResponseEntity<?> editAlarmConfig(@RequestBody AlertConfig ac) {
         try {
             if (!action.existsById(ac.getId())) {
