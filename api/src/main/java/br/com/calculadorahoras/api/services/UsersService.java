@@ -27,25 +27,7 @@ public class UsersService implements UserDetailsService{
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Optional<Users> user = userRepo.findByUsername("Cebolinha");
-        Optional<Roles> roleName;
-
-        System.out.println(user);
-        if (user.isPresent()) {
-            var userObj = user.get();
-            roleName = roleRepo.findById(userObj.getRole().getId());
-            
-            return User.builder()
-                .username(userObj.getUsername())
-                .password(userObj.getPassword())
-                .roles(roleName.get().getDetails())
-                .build();
-        }
-        else{
-            throw new UsernameNotFoundException(username);
-        }
-
-
+        return userRepo.findByUsername(username);
     }
 
 }
