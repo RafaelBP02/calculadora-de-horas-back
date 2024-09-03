@@ -88,6 +88,16 @@ public class ApiAuthenticationTest {
 
     }
 
+    @Test 
+    public void shouldNotCreateAnUser() throws Exception {
+        Mockito.when(userRepo.findByUsername(anyString())).thenReturn(new Users());
+
+        mockMvc.perform(post("/auth/signup")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{ \"username\": \"TesterUnit\", \"password\": \"testPass123\", \"role_id\": 1 }"))
+                .andExpect(status().isBadRequest());
+    }
+
     @Test
     public void shouldMakeLogin() throws Exception {
 
