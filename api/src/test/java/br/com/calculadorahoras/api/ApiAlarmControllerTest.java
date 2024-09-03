@@ -11,6 +11,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -55,39 +56,44 @@ public class ApiAlarmControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "user", roles = {"USER"})
     public void shouldFindConfigById() throws Exception {
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/{id}", 1))
+        mockMvc.perform(MockMvcRequestBuilders.get("/alarms/{id}", 1))
                 .andExpect(MockMvcResultMatchers.status().isOk());
 
     }
 
     @Test
+    @WithMockUser(username = "user", roles = {"USER"})
     public void shouldNotFindConfigById() throws Exception {
         given(repo.findById(0)).willReturn(Optional.empty());
 
-        mockMvc.perform(get("/{id}", 0)
+        mockMvc.perform(get("/alarms/{id}", 0)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
     }
 
     @Test
+    @WithMockUser(username = "user", roles = {"USER"})
     public void shouldFindAllConfigurtions() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get("/"))
+        mockMvc.perform(MockMvcRequestBuilders.get("/alarms"))
                 .andExpect(MockMvcResultMatchers.status().isOk());
     }
 
     @Test
+    @WithMockUser(username = "user", roles = {"USER"})
     public void shouldNotFindAllConfigurtions() throws Exception {
         given(repo.findAll()).willReturn(new ArrayList<AlertConfig>());
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/"))
+        mockMvc.perform(MockMvcRequestBuilders.get("/alarms"))
                 .andExpect(MockMvcResultMatchers.status().isInternalServerError())
                 .andExpect(content()
                         .json("{\"errorMessage\":\"Erro na comunicação com o servidor. Por favor tente mais tarde\"}"));
     }
 
     @Test
+    @WithMockUser(username = "user", roles = {"USER"})
     public void shouldEditAlarmConfig() throws Exception {
         AlertConfig editAC = new AlertConfig();
         editAC.setId(1);
@@ -101,13 +107,14 @@ public class ApiAlarmControllerTest {
         ObjectMapper objectMapper = new ObjectMapper();
         String editACJson = objectMapper.writeValueAsString(editAC);
 
-        mockMvc.perform(put("/")
+        mockMvc.perform(put("/alarms")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(editACJson))
                 .andExpect(status().isOk());
     }
 
     @Test
+    @WithMockUser(username = "user", roles = {"USER"})
     public void shouldNotEditAlarmConfig() throws Exception {
         AlertConfig editAC = new AlertConfig();
         editAC.setId(10);
@@ -116,7 +123,7 @@ public class ApiAlarmControllerTest {
         ObjectMapper objectMapper = new ObjectMapper();
         String editACJson = objectMapper.writeValueAsString(editAC);
 
-        mockMvc.perform(put("/")
+        mockMvc.perform(put("/alarms")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(editACJson))
                 .andExpect(status().isNotFound())
@@ -126,6 +133,7 @@ public class ApiAlarmControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "user", roles = {"USER"})
     public void shouldRegisterAlarmConfig() throws Exception {
         AlertConfig newAC = new AlertConfig();
         newAC.setWorkEntry(Time.valueOf("10:00:00"));
@@ -138,13 +146,14 @@ public class ApiAlarmControllerTest {
         ObjectMapper objectMapper = new ObjectMapper();
         String newACJson = objectMapper.writeValueAsString(newAC);
 
-        mockMvc.perform(post("/")
+        mockMvc.perform(post("/alarms")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(newACJson))
                 .andExpect(status().isOk());                
     }
 
     @Test
+    @WithMockUser(username = "user", roles = {"USER"})
     public void shouldNotRegisterAlarmConfig() throws Exception {
         given(repo.save(any(AlertConfig.class))).willThrow(new RuntimeException());
         AlertConfig newAC = new AlertConfig();
@@ -152,7 +161,7 @@ public class ApiAlarmControllerTest {
         ObjectMapper objectMapper = new ObjectMapper();
         String newACJson = objectMapper.writeValueAsString(newAC);
 
-        mockMvc.perform(post("/")
+        mockMvc.perform(post("/alarms")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(newACJson))
                 .andExpect(status().isInternalServerError())
