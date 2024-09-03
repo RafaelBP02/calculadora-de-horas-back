@@ -60,10 +60,13 @@ public class AuthenticationController {
     public ResponseEntity<?> login(@RequestBody Users user) {
         var userPassword = new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword());
         var auth = this.authenticationManager.authenticate(userPassword);
-
-        var token = tokenService.generateToken((Users) auth.getPrincipal());
-
-        return ResponseEntity.ok(token);
+        if(auth.isAuthenticated()){
+            var token = tokenService.generateToken((Users) auth.getPrincipal());
+            return ResponseEntity.ok(token);
+        }
+        else
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        
     }
 
 }

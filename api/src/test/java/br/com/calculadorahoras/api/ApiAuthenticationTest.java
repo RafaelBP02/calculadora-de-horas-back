@@ -38,6 +38,7 @@ import br.com.calculadorahoras.api.services.TokenService;
 @SpringBootTest
 @AutoConfigureMockMvc
 public class ApiAuthenticationTest {
+    Roles role = new Roles();
 
     @Autowired
     private MockMvc mockMvc;
@@ -59,7 +60,6 @@ public class ApiAuthenticationTest {
 
     @BeforeEach
     public void setup() {
-        Roles role = new Roles();
         role.setId(2);
         role.setRoleName("USUARIO");
         role.setDetails("teste para os perfis");
@@ -90,24 +90,37 @@ public class ApiAuthenticationTest {
 
     @Test
     public void shouldMakeLogin() throws Exception {
-        Users user = new Users();
-        user.setUsername("TesterUnit");
-        user.setPassword("testPass123");
+
+        Users registeredUser = new Users();
+        registeredUser.setId(2);
+        registeredUser.setUsername("savedUser");
+        registeredUser.setPassword(passwordEncoder.encode("savedPass123"));
+        registeredUser.setRole(role);
+
+        when(userRepo.findByUsername("savedUser")).thenReturn(registeredUser);
 
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
-                .thenReturn(new TestingAuthenticationToken(user, null));
+                .thenReturn(new TestingAuthenticationToken(registeredUser, null, "ROLE_USUARIO"));
 
         when(tokenService.generateToken(any(Users.class))).thenReturn("token");
 
-        MvcResult result  = mockMvc.perform(post("/auth/login")
+        MvcResult result = mockMvc.perform(post("/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content( "{ \"username\": \"TesterUnit\", \"password\": \"testPass123\" }"))
+                .content("{ \"username\": \"savedUser\", \"password\": \"savedPass123\" }"))
                 .andExpect(status().isOk())
                 .andReturn();
 
         String token = result.getResponse().getContentAsString();
         assertFalse(token.isEmpty());
         assertEquals(5, token.length());
+    }
+
+    @Test
+    public void shoulNotMakeLogin() throws Exception {
+        mockMvc.perform(post("/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{ \"username\": \"NotUser\", \"password\": \"wrongPass\" }"))
+                .andExpect(status().isUnauthorized());
     }
 
 }
