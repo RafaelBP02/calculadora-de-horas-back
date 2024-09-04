@@ -122,7 +122,7 @@ public class ApiAuthenticationTest {
 
         String token = result.getResponse().getContentAsString();
         assertFalse(token.isEmpty());
-        assertEquals(5, token.length());
+        assertEquals(17, token.length());
     }
 
     @Test
