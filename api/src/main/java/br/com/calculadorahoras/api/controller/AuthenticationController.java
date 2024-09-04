@@ -1,5 +1,8 @@
 package br.com.calculadorahoras.api.controller;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -62,7 +65,10 @@ public class AuthenticationController {
         var auth = this.authenticationManager.authenticate(userPassword);
         if(auth.isAuthenticated()){
             var token = tokenService.generateToken((Users) auth.getPrincipal());
-            return ResponseEntity.ok(token);
+            Map<String, String> tokenJson = new HashMap<>();
+            tokenJson.put("token", token);
+            
+            return ResponseEntity.ok(tokenJson);
         }
         else
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
