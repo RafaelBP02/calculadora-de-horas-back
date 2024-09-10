@@ -17,9 +17,15 @@ INSERT INTO USERS(username, passworld) VALUES(
 	'fulano', '!@senha@!'
 );
 
-INSERT INTO ALARM_CONFIG(work_entry,interval_beginning,interval_end,work_end,workload,user_id) VALUES(
-	'09:00:00', '13:00:00', '14:00:00','18:00:00', 8, 1
-);
+INSERT INTO ALARM_CONFIG(work_entry,interval_beginning,interval_end,work_end,workload,user_id) VALUES
+	('09:00:00', '13:00:00', '14:00:00','18:00:00', 8, 1),
+    ('11:00:00', '13:00:00', '14:00:00','18:00:00', 6, 2);
+
+
+INSERT INTO APP_ROLES(role_name, details) VALUES
+	("ADMINISTRADOR",	"Pode navegar pela aplicação, gerenciar seus alarmes, adicionar e remover usuarios"),
+	("USUARIO",	"Com login efetuado, pode navegar pela aplicação e gerenciar seus alarmes");
+
 
 -- Seleção de dados
 -- Seleciona os usuarios com suas configurações do alarme ordenado
