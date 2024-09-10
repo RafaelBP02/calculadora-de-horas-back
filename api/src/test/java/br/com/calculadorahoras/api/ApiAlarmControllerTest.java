@@ -47,7 +47,7 @@ public class ApiAlarmControllerTest {
         ac.setIntervalEnd(Time.valueOf("14:00:00"));
         ac.setWorkEnd(Time.valueOf("18:00:00"));
         ac.setWorkload(8);
-        ac.setUser_id(1);
+        ac.setUserId(1);
 
         Mockito.when(repo.findById(1)).thenReturn(Optional.of(ac));
         Mockito.when(repo.findAll()).thenReturn(Arrays.asList(ac));
@@ -102,7 +102,7 @@ public class ApiAlarmControllerTest {
         editAC.setIntervalEnd(Time.valueOf("14:00:00"));
         editAC.setWorkEnd(Time.valueOf("18:00:00"));
         editAC.setWorkload(6);
-        editAC.setUser_id(1);
+        editAC.setUserId(1);
 
         ObjectMapper objectMapper = new ObjectMapper();
         String editACJson = objectMapper.writeValueAsString(editAC);
@@ -141,7 +141,7 @@ public class ApiAlarmControllerTest {
         newAC.setIntervalEnd(Time.valueOf("14:00:00"));
         newAC.setWorkEnd(Time.valueOf("18:00:00"));
         newAC.setWorkload(6);
-        newAC.setUser_id(1);
+        newAC.setUserId(1);
 
         ObjectMapper objectMapper = new ObjectMapper();
         String newACJson = objectMapper.writeValueAsString(newAC);

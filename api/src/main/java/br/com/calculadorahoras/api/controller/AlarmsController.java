@@ -1,7 +1,6 @@
 package br.com.calculadorahoras.api.controller;
 
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 import br.com.calculadorahoras.api.model.AlertConfig;
 import br.com.calculadorahoras.api.repo.AlertRepo;
@@ -41,7 +40,7 @@ public class AlarmsController {
     @GetMapping("/{id}")
     public ResponseEntity<?> selectAlarmConfig(@PathVariable Integer id) {
         try {
-            AlertConfig response = alertRepo.findByUser_id(id);
+            AlertConfig response = alertRepo.findByUserId(id);
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(
