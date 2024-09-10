@@ -26,22 +26,29 @@ public class AlarmsController {
     @Autowired
     private AlertRepo alertRepo;
 
-    @GetMapping
-    public ResponseEntity<?> selectAllAlarmConfigs() {
-        Iterable<AlertConfig> response = alertRepo.findAll();
-        if (!response.iterator().hasNext()) {
-            // retorna status 500 se a colecao de elementos estiver vazia
-            return new ResponseEntity<>(new ErrorResponse(), HttpStatus.INTERNAL_SERVER_ERROR);
-        } else {
-            return ResponseEntity.ok(response);
-        }
-    }
+    // Habilitar o endpoint caso exista uma funcionalidade onde o Administrador possa editar essas configuracoes
+    // @GetMapping
+    // public ResponseEntity<?> selectAllAlarmConfigs() {
+    //     Iterable<AlertConfig> response = alertRepo.findAll();
+    //     if (!response.iterator().hasNext()) {
+    //         // retorna status 500 se a colecao de elementos estiver vazia
+    //         return new ResponseEntity<>(new ErrorResponse(), HttpStatus.INTERNAL_SERVER_ERROR);
+    //     } else {
+    //         return ResponseEntity.ok(response);
+    //     }
+    // }
 
     @GetMapping("/{id}")
-    public ResponseEntity<AlertConfig> selectAlarmConfig(@PathVariable Integer id) {
-        AlertConfig response = alertRepo.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                "Dado inexistente. Alerta não foi configurado"));
-        return new ResponseEntity<>(response, HttpStatus.OK);
+    public ResponseEntity<?> selectAlarmConfig(@PathVariable Integer id) {
+        try {
+            AlertConfig response = alertRepo.findByUser_id(id);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(
+                new ErrorResponse("Esse usuario não possui um alerta configurado"), 
+                HttpStatus.NOT_FOUND);
+        }
+        
     }
 
     @PostMapping
