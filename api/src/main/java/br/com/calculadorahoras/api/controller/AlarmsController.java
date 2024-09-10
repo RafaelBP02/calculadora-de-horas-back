@@ -24,11 +24,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class AlarmsController {
 
     @Autowired
-    private AlertRepo action;
+    private AlertRepo alertRepo;
 
     @GetMapping
     public ResponseEntity<?> selectAllAlarmConfigs() {
-        Iterable<AlertConfig> response = action.findAll();
+        Iterable<AlertConfig> response = alertRepo.findAll();
         if (!response.iterator().hasNext()) {
             // retorna status 500 se a colecao de elementos estiver vazia
             return new ResponseEntity<>(new ErrorResponse(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -39,7 +39,7 @@ public class AlarmsController {
 
     @GetMapping("/{id}")
     public ResponseEntity<AlertConfig> selectAlarmConfig(@PathVariable Integer id) {
-        AlertConfig response = action.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+        AlertConfig response = alertRepo.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                 "Dado inexistente. Alerta não foi configurado"));
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
@@ -47,7 +47,7 @@ public class AlarmsController {
     @PostMapping
     public ResponseEntity<?> registerAlarmConfig(@RequestBody AlertConfig ac) {
         try {
-            AlertConfig savedConfig = action.save(ac);
+            AlertConfig savedConfig = alertRepo.save(ac);
             return new ResponseEntity<AlertConfig>(savedConfig, HttpStatus.OK);
         } catch (Exception e) {
             // Tratamento de erro genérico para status 500
@@ -60,12 +60,12 @@ public class AlarmsController {
     @PutMapping
     public ResponseEntity<?> editAlarmConfig(@RequestBody AlertConfig ac) {
         try {
-            if (!action.existsById(ac.getId())) {
+            if (!alertRepo.existsById(ac.getId())) {
                 // Se o ID não existir, retorna 404
                 return new ResponseEntity<>(new ErrorResponse("Essa configuração de alarme não existe"),
                         HttpStatus.NOT_FOUND);
             }
-            AlertConfig updatedConfig = action.save(ac);
+            AlertConfig updatedConfig = alertRepo.save(ac);
             return new ResponseEntity<AlertConfig>(updatedConfig, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(new ErrorResponse(), HttpStatus.INTERNAL_SERVER_ERROR);
