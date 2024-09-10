@@ -5,7 +5,9 @@ import org.springframework.stereotype.Repository;
 
 import br.com.calculadorahoras.api.model.AlertConfig;
 
+
 @Repository
 public interface AlertRepo extends CrudRepository<AlertConfig, Integer>{
+    AlertConfig findByUser_id(int user_id);
 
 }
