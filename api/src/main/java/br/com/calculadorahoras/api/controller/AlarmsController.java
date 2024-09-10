@@ -4,7 +4,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import br.com.calculadorahoras.api.model.AlertConfig;
-import br.com.calculadorahoras.api.repo.Repo;
+import br.com.calculadorahoras.api.repo.AlertRepo;
 import br.com.calculadorahoras.utils.ErrorResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class AlarmsController {
 
     @Autowired
-    private Repo action;
+    private AlertRepo action;
 
     @GetMapping
     public ResponseEntity<?> selectAllAlarmConfigs() {

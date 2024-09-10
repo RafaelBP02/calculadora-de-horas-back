@@ -1,7 +1,7 @@
 package br.com.calculadorahoras.api;
 
 import br.com.calculadorahoras.api.model.AlertConfig;
-import br.com.calculadorahoras.api.repo.Repo;
+import br.com.calculadorahoras.api.repo.AlertRepo;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,7 +36,7 @@ public class ApiAlarmControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private Repo repo;
+    private AlertRepo repo;
 
     @BeforeEach
     public void setup() {
