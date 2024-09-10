@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RestController
 @CrossOrigin(origins = "*")
 @RequestMapping("alarms")
-public class Controller {
+public class AlarmsController {
 
     @Autowired
     private Repo action;
