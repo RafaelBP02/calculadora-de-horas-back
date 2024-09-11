@@ -33,12 +33,13 @@ public class ApiTokenizationTest {
     public void shouldValidateToken(){
         Users user = new Users();
         user.setUsername("justAnUser");
+        user.setId(7);
 
         String token = tokenService.generateToken(user);
 
         String validation = tokenService.validateToken(token);
 
-        assertEquals("justAnUser", validation);
+        assertEquals("{\"username\":\"justAnUser\",\"userId\":7}", validation);
     }
 
     @Test
