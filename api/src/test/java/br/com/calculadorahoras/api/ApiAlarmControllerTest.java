@@ -3,6 +3,7 @@ package br.com.calculadorahoras.api;
 import br.com.calculadorahoras.api.model.AlertConfig;
 import br.com.calculadorahoras.api.repo.AlertRepo;
 
+import org.json.JSONException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -75,6 +76,16 @@ public class ApiAlarmControllerTest {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
     }
+
+    @Test
+    @WithMockUser(username = "Leoncio", roles = { "USER" })
+    public void shouldNotHaveAuthorizationToFindByUserId() throws Exception {
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/alarms/{id}", 1)
+                .header("Authorization", "Bearer " + this.validToken))
+                .andExpect(MockMvcResultMatchers.status().isUnauthorized());
+    }
+
 
     /*
      * DESABILITA TESTES DO ENDPOINT INATIVO
