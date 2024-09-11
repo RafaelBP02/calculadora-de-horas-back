@@ -91,15 +91,33 @@ public class AlarmsController {
     }
 
     @PutMapping
-    public ResponseEntity<?> editAlarmConfig(@RequestBody AlertConfig ac) {
+    public ResponseEntity<?> editAlarmConfig(@RequestBody AlertConfig ac, @RequestHeader("Authorization") String authorizationHeader) {
+        String token = authorizationHeader.replace("Bearer ", "");
+
         try {
-            if (!alertRepo.existsById(ac.getId())) {
-                // Se o ID não existir, retorna 404
-                return new ResponseEntity<>(new ErrorResponse("Essa configuração de alarme não existe"),
-                        HttpStatus.NOT_FOUND);
+            UserTokenSubjectBody verified = UserTokenSubjectBody.convertStringToJson(tokenService.validateToken(token));
+            if (ac.getUserId() == verified.getUserId()) {
+                AlertConfig originalData = alertRepo.findByUserId(ac.getUserId());
+                if (originalData == null) {
+                    // Se o ID não existir, retorna 404
+                    return new ResponseEntity<>(new ErrorResponse("Essa configuração de alarme não existe"),
+                            HttpStatus.NOT_FOUND);
+                }
+                originalData.setWorkEntry(ac.getWorkEntry());
+                originalData.setIntervalBeginning(ac.getIntervalBeginning());
+                originalData.setIntervalEnd(ac.getIntervalEnd());
+                originalData.setWorkEnd(ac.getWorkEnd());
+                originalData.setWorkload(ac.getWorkload());
+                
+                AlertConfig updatedConfig = alertRepo.save(originalData);
+                return new ResponseEntity<AlertConfig>(updatedConfig, HttpStatus.OK);
             }
-            AlertConfig updatedConfig = alertRepo.save(ac);
-            return new ResponseEntity<AlertConfig>(updatedConfig, HttpStatus.OK);
+            else{
+                return new ResponseEntity<>(
+                    new ErrorResponse("Este usuario nao possui a devida autorizacao"),
+                    HttpStatus.UNAUTHORIZED);
+            }
+            
         } catch (Exception e) {
             return new ResponseEntity<>(new ErrorResponse(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
