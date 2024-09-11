@@ -56,14 +56,13 @@ public class AlarmsController {
         try {
             UserTokenSubjectBody verified = UserTokenSubjectBody.convertStringToJson(tokenService.validateToken(token));
             if(verified.getUserId() == id){
-                try {
-                    AlertConfig response = alertRepo.findByUserId(id);
-                    return new ResponseEntity<>(response, HttpStatus.OK);
-                } catch (Exception e) {
+                AlertConfig response = alertRepo.findByUserId(id);
+                if (response == null) {
                     return new ResponseEntity<>(
                         new ErrorResponse("Esse usuario não possui um alerta configurado"), 
                         HttpStatus.NOT_FOUND);
-                }       
+                }
+                return new ResponseEntity<>(response, HttpStatus.OK);    
             }
             else{
                 return new ResponseEntity<>(
