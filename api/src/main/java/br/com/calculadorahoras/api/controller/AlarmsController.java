@@ -3,18 +3,25 @@ package br.com.calculadorahoras.api.controller;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.calculadorahoras.api.model.AlertConfig;
+import br.com.calculadorahoras.api.model.Users;
 import br.com.calculadorahoras.api.repo.AlertRepo;
+import br.com.calculadorahoras.api.repo.UserRepo;
+import br.com.calculadorahoras.api.services.TokenService;
+import br.com.calculadorahoras.api.services.UsersService;
 import br.com.calculadorahoras.utils.ErrorResponse;
+import br.com.calculadorahoras.utils.UserTokenSubjectBody;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @RestController
@@ -24,6 +31,12 @@ public class AlarmsController {
 
     @Autowired
     private AlertRepo alertRepo;
+
+    @Autowired
+    private TokenService tokenService;
+
+    @Autowired
+    private UserRepo userRepo;
 
     // Habilitar o endpoint caso exista uma funcionalidade onde o Administrador possa editar essas configuracoes
     // @GetMapping
@@ -38,15 +51,30 @@ public class AlarmsController {
     // }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> selectAlarmConfig(@PathVariable Integer id) {
+    public ResponseEntity<?> selectAlarmConfig(@PathVariable Integer id, @RequestHeader("Authorization") String authorizationHeader) {
+        String token = authorizationHeader.replace("Bearer ", "");
         try {
-            AlertConfig response = alertRepo.findByUserId(id);
-            return new ResponseEntity<>(response, HttpStatus.OK);
+            UserTokenSubjectBody verified = UserTokenSubjectBody.convertStringToJson(tokenService.validateToken(token));
+            if(verified.getUserId() == id){
+                try {
+                    AlertConfig response = alertRepo.findByUserId(id);
+                    return new ResponseEntity<>(response, HttpStatus.OK);
+                } catch (Exception e) {
+                    return new ResponseEntity<>(
+                        new ErrorResponse("Esse usuario não possui um alerta configurado"), 
+                        HttpStatus.NOT_FOUND);
+                }       
+            }
+            else{
+                return new ResponseEntity<>(
+                    new ErrorResponse("Este usuario nao possui a devida autorizacao"),
+                    HttpStatus.UNAUTHORIZED);
+            }
         } catch (Exception e) {
             return new ResponseEntity<>(
-                new ErrorResponse("Esse usuario não possui um alerta configurado"), 
-                HttpStatus.NOT_FOUND);
-        }
+                new ErrorResponse("Erro no processamento: " + e), 
+                HttpStatus.INTERNAL_SERVER_ERROR);
+        }      
         
     }
 
