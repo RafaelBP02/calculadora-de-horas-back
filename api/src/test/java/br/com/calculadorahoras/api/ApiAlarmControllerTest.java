@@ -90,18 +90,18 @@ public class ApiAlarmControllerTest {
 
     @Test
     @WithMockUser(username = "Leoncio", roles = { "USER" })
-    public void shouldNotFindConfigById() throws Exception {
+    public void shouldHaveFindConfigByIdError() throws Exception {
+        given(alertRepo.findByUserId(any(int.class))).willThrow(new RuntimeException());
+
         UserTokenSubjectBody validToken = new UserTokenSubjectBody("Leoncio", 5);
         ObjectMapper objectMapper = new ObjectMapper();
         String validJsonToken = objectMapper.writeValueAsString(validToken);
 
         when(tokenService.validateToken("valid_token")).thenReturn(validJsonToken);
 
-        given(alertRepo.findByUserId(5)).willReturn(null);
-
         mockMvc.perform(get("/alarms/{id}", 5)
                 .header("Authorization", "Bearer valid_token"))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isInternalServerError());
     }
 
     @Test
@@ -199,6 +199,64 @@ public class ApiAlarmControllerTest {
 
     @Test
     @WithMockUser(username = "Leoncio", roles = { "USER" })
+    public void shouldNotFindEditAlarmConfig() throws Exception {
+        given(alertRepo.findByUserId(5)).willReturn(null);
+
+        AlertConfig editAC = new AlertConfig();
+        editAC.setId(10);
+        editAC.setWorkEntry(Time.valueOf("08:00:00"));
+        editAC.setUserId(5);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        String editACJson = objectMapper.writeValueAsString(editAC);
+
+        UserTokenSubjectBody validToken = new UserTokenSubjectBody("Leoncio", 5);
+        ObjectMapper objectMapper2 = new ObjectMapper();
+        String validJsonToken = objectMapper2.writeValueAsString(validToken);
+
+        when(tokenService.validateToken("valid_token")).thenReturn(validJsonToken);
+
+        mockMvc.perform(put("/alarms")
+                .header("Authorization", "Bearer valid_token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(editACJson))
+                .andExpect(status().isNotFound())
+                .andExpect(content()
+                        .json("{\"errorMessage\":\"Essa configuração de alarme não existe\"}"));
+
+    }
+
+    @Test
+    @WithMockUser(username = "Leoncio", roles = { "USER" })
+    public void shouldHaveEditAlarmConfigError() throws Exception {
+        given(alertRepo.findByUserId(any(int.class))).willThrow(new RuntimeException());
+
+        AlertConfig editAC = new AlertConfig();
+        editAC.setId(10);
+        editAC.setWorkEntry(Time.valueOf("08:00:00"));
+        editAC.setUserId(5);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        String editACJson = objectMapper.writeValueAsString(editAC);
+
+        UserTokenSubjectBody validToken = new UserTokenSubjectBody("Leoncio", 5);
+        ObjectMapper objectMapper2 = new ObjectMapper();
+        String validJsonToken = objectMapper2.writeValueAsString(validToken);
+
+        when(tokenService.validateToken("valid_token")).thenReturn(validJsonToken);
+
+        mockMvc.perform(put("/alarms")
+                .header("Authorization", "Bearer valid_token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(editACJson))
+                .andExpect(status().isInternalServerError())
+                .andExpect(content()
+                        .json("{\"errorMessage\":\"Erro na comunicação com o servidor. Por favor tente mais tarde\"}"));
+
+    }
+
+    @Test
+    @WithMockUser(username = "Leoncio", roles = { "USER" })
     public void shouldRegisterAlarmConfig() throws Exception {
         AlertConfig newAC = new AlertConfig();
         newAC.setWorkEntry(Time.valueOf("10:00:00"));
@@ -226,7 +284,7 @@ public class ApiAlarmControllerTest {
 
     @Test
     @WithMockUser(username = "Leoncio", roles = { "USER" })
-    public void shouldNotRegisterAlarmConfig() throws Exception {
+    public void shouldHaveRegisterAlarmConfigError() throws Exception {
         given(alertRepo.save(any(AlertConfig.class))).willThrow(new RuntimeException());
         AlertConfig newAC = new AlertConfig();
         newAC.setUserId(5);
@@ -247,6 +305,31 @@ public class ApiAlarmControllerTest {
                 .andExpect(status().isInternalServerError())
                 .andExpect(content().json(
                         "{\"errorMessage\":\"Não foi possível salvar sua configuração. Erro na comunicação com o servidor\"}"));
+
+    }
+
+    @Test
+    @WithMockUser(username = "Leoncio", roles = { "USER" })
+    public void shouldNotHavePemissionToRegisterAlarmConfig() throws Exception {
+        AlertConfig newAC = new AlertConfig();
+        newAC.setUserId(2);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        String newACJson = objectMapper.writeValueAsString(newAC);
+
+        UserTokenSubjectBody validToken = new UserTokenSubjectBody("Leoncio", 5);
+        ObjectMapper objectMapper2 = new ObjectMapper();
+        String validJsonToken = objectMapper2.writeValueAsString(validToken);
+
+        when(tokenService.validateToken("valid_token")).thenReturn(validJsonToken);
+
+        mockMvc.perform(post("/alarms")
+                .header("Authorization", "Bearer valid_token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(newACJson))
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().json(
+                        "{\"errorMessage\":\"Este usuario nao possui a devida autorizacao\"}"));
 
     }
 
