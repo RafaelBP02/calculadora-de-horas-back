@@ -78,10 +78,21 @@ public class AlarmsController {
     }
 
     @PostMapping
-    public ResponseEntity<?> registerAlarmConfig(@RequestBody AlertConfig ac) {
+    public ResponseEntity<?> registerAlarmConfig(@RequestBody AlertConfig ac, @RequestHeader("Authorization") String authorizationHeader) {
+        String token = authorizationHeader.replace("Bearer ", "");
+        
         try {
-            AlertConfig savedConfig = alertRepo.save(ac);
-            return new ResponseEntity<AlertConfig>(savedConfig, HttpStatus.OK);
+            UserTokenSubjectBody verified = UserTokenSubjectBody.convertStringToJson(tokenService.validateToken(token));
+            if (ac.getUserId() == verified.getUserId()){
+                AlertConfig savedConfig = alertRepo.save(ac);
+                return new ResponseEntity<AlertConfig>(savedConfig, HttpStatus.OK);
+            }
+            else{
+                return new ResponseEntity<>(
+                    new ErrorResponse("Este usuario nao possui a devida autorizacao"),
+                    HttpStatus.UNAUTHORIZED);
+            }
+            
         } catch (Exception e) {
             // Tratamento de erro genérico para status 500
             return new ResponseEntity<>(
@@ -108,7 +119,7 @@ public class AlarmsController {
                 originalData.setIntervalEnd(ac.getIntervalEnd());
                 originalData.setWorkEnd(ac.getWorkEnd());
                 originalData.setWorkload(ac.getWorkload());
-                
+
                 AlertConfig updatedConfig = alertRepo.save(originalData);
                 return new ResponseEntity<AlertConfig>(updatedConfig, HttpStatus.OK);
             }
