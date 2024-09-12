@@ -2,6 +2,10 @@ package br.com.calculadorahoras.api;
 
 import br.com.calculadorahoras.api.model.AlertConfig;
 import br.com.calculadorahoras.api.repo.AlertRepo;
+import br.com.calculadorahoras.api.repo.RoleRepo;
+import br.com.calculadorahoras.api.repo.UserRepo;
+import br.com.calculadorahoras.api.services.TokenService;
+import br.com.calculadorahoras.utils.UserTokenSubjectBody;
 
 import org.json.JSONException;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,6 +16,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -25,18 +31,31 @@ import java.util.Arrays;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.*;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 public class ApiAlarmControllerTest {
-    private String validToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhdXRoLWFwaSIsInN1YiI6IntcInVzZXJuYW1lXCI6XCJMZW9uY2lvXCIsXCJ1c2VySWRcIjo1fSIsImV4cCI6MTcyNjA3MTU3M30.arEPRV0ckn12CwKA5DELINDWnAhxtaupoj1e1HbmWJg";
 
     @Autowired
     private MockMvc mockMvc;
 
     @MockBean
     private AlertRepo alertRepo;
+
+    @MockBean
+    private RoleRepo roleRepo;
+
+    @MockBean
+    private UserRepo userRepo;
+
+    @MockBean
+    private AuthenticationManager authenticationManager;
+
+    @MockBean
+    private TokenService tokenService;
 
     @BeforeEach
     public void setup() {
@@ -58,34 +77,46 @@ public class ApiAlarmControllerTest {
     @Test
     @WithMockUser(username = "Leoncio", roles = { "USER" })
     public void shouldFindConfigById() throws Exception {
+        UserTokenSubjectBody validToken = new UserTokenSubjectBody("Leoncio", 5);
+        ObjectMapper objectMapper = new ObjectMapper();
+        String validJsonToken = objectMapper.writeValueAsString(validToken);
+
+        when(tokenService.validateToken("valid_token")).thenReturn(validJsonToken);
 
         mockMvc.perform(MockMvcRequestBuilders.get("/alarms/{id}", 5)
-                .header("Authorization", "Bearer " + this.validToken))
+                .header("Authorization", "Bearer valid_token"))
                 .andExpect(MockMvcResultMatchers.status().isOk());
     }
 
     @Test
     @WithMockUser(username = "Leoncio", roles = { "USER" })
     public void shouldNotFindConfigById() throws Exception {
-        
+        UserTokenSubjectBody validToken = new UserTokenSubjectBody("Leoncio", 5);
+        ObjectMapper objectMapper = new ObjectMapper();
+        String validJsonToken = objectMapper.writeValueAsString(validToken);
+
+        when(tokenService.validateToken("valid_token")).thenReturn(validJsonToken);
 
         given(alertRepo.findByUserId(5)).willReturn(null);
 
         mockMvc.perform(get("/alarms/{id}", 5)
-                .header("Authorization", "Bearer " + this.validToken)
-                .contentType(MediaType.APPLICATION_JSON))
+                .header("Authorization", "Bearer valid_token"))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     @WithMockUser(username = "Leoncio", roles = { "USER" })
     public void shouldNotHaveAuthorizationToFindByUserId() throws Exception {
+        UserTokenSubjectBody validToken = new UserTokenSubjectBody("Leoncio", 5);
+        ObjectMapper objectMapper = new ObjectMapper();
+        String validJsonToken = objectMapper.writeValueAsString(validToken);
+
+        when(tokenService.validateToken("valid_token")).thenReturn(validJsonToken);
 
         mockMvc.perform(MockMvcRequestBuilders.get("/alarms/{id}", 1)
-                .header("Authorization", "Bearer " + this.validToken))
+                .header("Authorization", "Bearer valid_token"))
                 .andExpect(MockMvcResultMatchers.status().isUnauthorized());
     }
-
 
     /*
      * DESABILITA TESTES DO ENDPOINT INATIVO
@@ -121,33 +152,48 @@ public class ApiAlarmControllerTest {
         editAC.setIntervalEnd(Time.valueOf("14:00:00"));
         editAC.setWorkEnd(Time.valueOf("18:00:00"));
         editAC.setWorkload(6);
-        editAC.setUserId(1);
+        editAC.setUserId(5);
 
         ObjectMapper objectMapper = new ObjectMapper();
         String editACJson = objectMapper.writeValueAsString(editAC);
 
+        UserTokenSubjectBody validToken = new UserTokenSubjectBody("Leoncio", 5);
+        ObjectMapper objectMapper2 = new ObjectMapper();
+        String validJsonToken = objectMapper2.writeValueAsString(validToken);
+
+        when(tokenService.validateToken("valid_token")).thenReturn(validJsonToken);
+
         mockMvc.perform(put("/alarms")
+                .header("Authorization", "Bearer valid_token")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(editACJson))
                 .andExpect(status().isOk());
     }
 
     @Test
-    @WithMockUser(username = "user", roles = { "USER" })
+    @WithMockUser(username = "Leoncio", roles = { "USER" })
     public void shouldNotEditAlarmConfig() throws Exception {
         AlertConfig editAC = new AlertConfig();
         editAC.setId(10);
         editAC.setWorkEntry(Time.valueOf("08:00:00"));
+        editAC.setUserId(1);
 
         ObjectMapper objectMapper = new ObjectMapper();
         String editACJson = objectMapper.writeValueAsString(editAC);
 
+        UserTokenSubjectBody validToken = new UserTokenSubjectBody("Leoncio", 5);
+        ObjectMapper objectMapper2 = new ObjectMapper();
+        String validJsonToken = objectMapper2.writeValueAsString(validToken);
+
+        when(tokenService.validateToken("valid_token")).thenReturn(validJsonToken);
+
         mockMvc.perform(put("/alarms")
+                .header("Authorization", "Bearer valid_token")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(editACJson))
-                .andExpect(status().isNotFound())
+                .andExpect(status().isUnauthorized())
                 .andExpect(content()
-                        .json("{\"errorMessage\":\"Essa configuração de alarme não existe\"}"));
+                        .json("{\"errorMessage\":\"Este usuario nao possui a devida autorizacao\"}"));
 
     }
 
@@ -160,7 +206,7 @@ public class ApiAlarmControllerTest {
         newAC.setIntervalEnd(Time.valueOf("14:00:00"));
         newAC.setWorkEnd(Time.valueOf("18:00:00"));
         newAC.setWorkload(6);
-        newAC.setUserId(1);
+        newAC.setUserId(5);
 
         ObjectMapper objectMapper = new ObjectMapper();
         String newACJson = objectMapper.writeValueAsString(newAC);
