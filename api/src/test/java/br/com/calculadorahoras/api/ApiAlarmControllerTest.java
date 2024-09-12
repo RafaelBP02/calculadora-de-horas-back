@@ -198,7 +198,7 @@ public class ApiAlarmControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "user", roles = { "USER" })
+    @WithMockUser(username = "Leoncio", roles = { "USER" })
     public void shouldRegisterAlarmConfig() throws Exception {
         AlertConfig newAC = new AlertConfig();
         newAC.setWorkEntry(Time.valueOf("10:00:00"));
@@ -211,22 +211,37 @@ public class ApiAlarmControllerTest {
         ObjectMapper objectMapper = new ObjectMapper();
         String newACJson = objectMapper.writeValueAsString(newAC);
 
+        UserTokenSubjectBody validToken = new UserTokenSubjectBody("Leoncio", 5);
+        ObjectMapper objectMapper2 = new ObjectMapper();
+        String validJsonToken = objectMapper2.writeValueAsString(validToken);
+
+        when(tokenService.validateToken("valid_token")).thenReturn(validJsonToken);
+
         mockMvc.perform(post("/alarms")
+                .header("Authorization", "Bearer valid_token")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(newACJson))
                 .andExpect(status().isOk());
     }
 
     @Test
-    @WithMockUser(username = "user", roles = { "USER" })
+    @WithMockUser(username = "Leoncio", roles = { "USER" })
     public void shouldNotRegisterAlarmConfig() throws Exception {
         given(alertRepo.save(any(AlertConfig.class))).willThrow(new RuntimeException());
         AlertConfig newAC = new AlertConfig();
+        newAC.setUserId(5);
 
         ObjectMapper objectMapper = new ObjectMapper();
         String newACJson = objectMapper.writeValueAsString(newAC);
 
+        UserTokenSubjectBody validToken = new UserTokenSubjectBody("Leoncio", 5);
+        ObjectMapper objectMapper2 = new ObjectMapper();
+        String validJsonToken = objectMapper2.writeValueAsString(validToken);
+
+        when(tokenService.validateToken("valid_token")).thenReturn(validJsonToken);
+
         mockMvc.perform(post("/alarms")
+                .header("Authorization", "Bearer valid_token")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(newACJson))
                 .andExpect(status().isInternalServerError())
