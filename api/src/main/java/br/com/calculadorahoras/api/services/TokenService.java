@@ -11,33 +11,41 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import br.com.calculadorahoras.api.model.Users;
+import br.com.calculadorahoras.utils.UserTokenSubjectBody;
 
 @Service
 public class TokenService {
     @Value("${api.security.token.secret}")
     private String secret;
 
-    public String generateToken(Users user){
+    public String generateToken(Users user) {
+        UserTokenSubjectBody utsb = new UserTokenSubjectBody(user.getUsername(), user.getId());
+
         try {
             Algorithm algorithm = Algorithm.HMAC256(secret);
+            ObjectMapper objectMapper = new ObjectMapper();
+            String subject = objectMapper.writeValueAsString(utsb);
+            
             String token = JWT.create()
                     .withIssuer("auth-api")
-                    .withSubject(user.getUsername())
+                    .withSubject(subject)
                     .withExpiresAt(genExpirationDate())
                     .sign(algorithm);
-            
+
             return token;
-        } catch (JWTCreationException exception) {
+        } catch (JWTCreationException | JsonProcessingException exception) {
             throw new RuntimeException("Error while generating token,", exception);
         }
     }
 
-    public String validateToken(String token){
+    public String validateToken(String token) {
         try {
             Algorithm algorithm = Algorithm.HMAC256(secret);
-            
+
             return JWT.require(algorithm)
                     .withIssuer("auth-api")
                     .build()
@@ -48,8 +56,8 @@ public class TokenService {
         }
     }
 
-    private Instant genExpirationDate(){
-        //Esse offset representa o horario de Brasilia
+    private Instant genExpirationDate() {
+        // Esse offset representa o horario de Brasilia
         return LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.of("-03:00"));
     }
 

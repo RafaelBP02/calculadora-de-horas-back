@@ -2,6 +2,7 @@ package br.com.calculadorahoras.api.model;
 
 import java.sql.Time;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -30,6 +31,7 @@ public class AlertConfig {
 
     private int workload;
 
-    private int user_id;  ;
+    @Column(name = "user_id")
+    private int userId;
 
 }

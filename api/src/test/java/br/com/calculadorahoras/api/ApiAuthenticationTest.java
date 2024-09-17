@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.util.Optional;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,12 +23,10 @@ import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.util.Assert;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import br.com.calculadorahoras.api.model.Roles;
 import br.com.calculadorahoras.api.model.Users;
@@ -39,6 +38,8 @@ import br.com.calculadorahoras.api.services.TokenService;
 @AutoConfigureMockMvc
 public class ApiAuthenticationTest {
     Roles role = new Roles();
+    Users user = new Users();
+
 
     @Autowired
     private MockMvc mockMvc;
@@ -64,7 +65,6 @@ public class ApiAuthenticationTest {
         role.setRoleName("USUARIO");
         role.setDetails("teste para os perfis");
 
-        Users user = new Users();
         user.setId(1);
         user.setUsername("TesterUnit");
         user.setRole(role);
@@ -75,6 +75,22 @@ public class ApiAuthenticationTest {
         Mockito.when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenReturn(new TestingAuthenticationToken(user, null));
 
+    }
+
+    @Test
+    public void shouldHaveUserInfo() {
+        assertTrue(user.isAccountNonExpired());
+        assertTrue(user.isAccountNonLocked());
+        assertTrue(user.isCredentialsNonExpired());
+        assertTrue(user.isEnabled());
+    }
+
+    @Test
+    public void shouldHaveAdminPrivilege(){
+        role.setId(2);
+        role.setRoleName("ADMINISTRADOR");
+
+        assertEquals(user.getAuthorities(), List.of(new SimpleGrantedAuthority("ROLE_ADMIN"), new SimpleGrantedAuthority("ROLE_USER")));
     }
 
     @Test
