@@ -27,11 +27,20 @@ public class Users implements UserDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     
-    @Column(unique = true, length = 20, nullable = false)
+    @Column(unique = true, length = 50, nullable = false)
     private String username ;
 
     @Column(nullable = false)
     private String password;
+
+    @Column(nullable = false, length = 20)
+    private String name;
+
+    @Column(nullable = false, length = 30)
+    private String sureName;
+
+    @Column(nullable = false, length = 40)
+    private String workPlace;
 
     @ManyToOne
     @JoinColumn(name = "role_id")
