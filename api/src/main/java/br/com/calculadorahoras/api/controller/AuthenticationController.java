@@ -47,7 +47,7 @@ public class AuthenticationController {
     public ResponseEntity<?> createUser(@RequestBody Users user) {
         try {
             if(this.userRepo.findByUsername(user.getUsername()) != null)
-            return ResponseEntity.badRequest().build();
+                return ResponseEntity.badRequest().build();
             else{
                 Roles role = roleRepo.findById(2)
                     .orElseThrow(() -> new IllegalArgumentException("Role não encontrado"));
@@ -61,23 +61,27 @@ public class AuthenticationController {
             }
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(new ErrorResponse("Erro no processamento: " + e.getMessage()));
-        }
-        
+        }  
     }
 
     @PostMapping("/auth/login")
     public ResponseEntity<?> login(@RequestBody Users user) {
-        var userPassword = new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword());
-        var auth = this.authenticationManager.authenticate(userPassword);
-        if(auth.isAuthenticated()){
-            var token = tokenService.generateToken((Users) auth.getPrincipal());
-            Map<String, String> tokenJson = new HashMap<>();
-            tokenJson.put("token", token);
-            
-            return ResponseEntity.ok(tokenJson);
+        try {
+            var userPassword = new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword());
+            var auth = this.authenticationManager.authenticate(userPassword);
+            if(auth.isAuthenticated()){
+                var token = tokenService.generateToken((Users) auth.getPrincipal());
+                Map<String, String> tokenJson = new HashMap<>();
+                tokenJson.put("token", token);
+                
+                return ResponseEntity.ok(tokenJson);
+            }
+            else
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(new ErrorResponse("Erro no processamento: " + e.getMessage()));
         }
-        else
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        
         
     }
 
