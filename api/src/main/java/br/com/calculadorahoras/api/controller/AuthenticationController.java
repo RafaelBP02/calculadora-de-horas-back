@@ -17,6 +17,7 @@ import br.com.calculadorahoras.api.model.Users;
 import br.com.calculadorahoras.api.repo.RoleRepo;
 import br.com.calculadorahoras.api.repo.UserRepo;
 import br.com.calculadorahoras.api.services.TokenService;
+import br.com.calculadorahoras.utils.ErrorResponse;
 
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -43,20 +44,25 @@ public class AuthenticationController {
     private AuthenticationManager authenticationManager;
 
     @PostMapping("/auth/signup")
-    public ResponseEntity<Users> createUser(@RequestBody Users user) {
-        if(this.userRepo.findByUsername(user.getUsername()) != null)
+    public ResponseEntity<?> createUser(@RequestBody Users user) {
+        try {
+            if(this.userRepo.findByUsername(user.getUsername()) != null)
             return ResponseEntity.badRequest().build();
-        else{
-            Roles role = roleRepo.findById(2)
-                .orElseThrow(() -> new IllegalArgumentException("Role não encontrado"));
-            
-            user.setRole(role);
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
+            else{
+                Roles role = roleRepo.findById(2)
+                    .orElseThrow(() -> new IllegalArgumentException("Role não encontrado"));
+                
+                user.setRole(role);
+                user.setPassword(passwordEncoder.encode(user.getPassword()));
 
-            this.userRepo.save(user);
+                this.userRepo.save(user);
 
-            return ResponseEntity.ok().build();
+                return ResponseEntity.ok().body("{\"concluido\":\"" + user.getName() + " efetuou seu cadastro com sucesso!\"}");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(new ErrorResponse("Erro no processamento: " + e.getMessage()));
         }
+        
     }
 
     @PostMapping("/auth/login")
