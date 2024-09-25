@@ -50,7 +50,36 @@ public class AlarmsController {
     //     }
     // }
 
-    @GetMapping
+
+    //Deprecated endpoint
+    @GetMapping("/{id}")
+    public ResponseEntity<?> selectAlarmConfig(@PathVariable Integer id, @RequestHeader("Authorization") String authorizationHeader) {
+        String token = authorizationHeader.replace("Bearer ", "");
+        try {
+            UserTokenSubjectBody verified = UserTokenSubjectBody.convertStringToJson(tokenService.validateToken(token));
+            if(verified.getUserId() == id){
+                AlertConfig response = alertRepo.findByUserId(id);
+                if (response == null) {
+                    return new ResponseEntity<>(
+                        new ErrorResponse("Esse usuario não possui um alerta configurado"), 
+                        HttpStatus.NOT_FOUND);
+                }
+                return new ResponseEntity<>(response, HttpStatus.OK);    
+            }
+            else{
+                return new ResponseEntity<>(
+                    new ErrorResponse("Este usuario nao possui a devida autorizacao"),
+                    HttpStatus.UNAUTHORIZED);
+            }
+        } catch (Exception e) {
+            return new ResponseEntity<>(
+                new ErrorResponse("Erro no processamento: " + e), 
+                HttpStatus.INTERNAL_SERVER_ERROR);
+        }      
+        
+    }
+
+    @GetMapping("/v2")
     public ResponseEntity<?> selectAlarmConfig(@RequestHeader("Authorization") String authorizationHeader) {
         String token = authorizationHeader.replace("Bearer ", "");
         try {
