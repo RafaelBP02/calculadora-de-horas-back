@@ -26,7 +26,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 @RestController
 @CrossOrigin(origins = "*")
-@RequestMapping("alarms")
 public class AlarmsController {
 
     @Autowired
@@ -52,7 +51,7 @@ public class AlarmsController {
 
 
     //Deprecated endpoint
-    @GetMapping("/{id}")
+    @GetMapping("alarms/{id}")
     public ResponseEntity<?> selectAlarmConfig(@PathVariable Integer id, @RequestHeader("Authorization") String authorizationHeader) {
         String token = authorizationHeader.replace("Bearer ", "");
         try {
@@ -79,7 +78,7 @@ public class AlarmsController {
         
     }
 
-    @GetMapping("/v2")
+    @GetMapping("v2/alarms")
     public ResponseEntity<?> selectAlarmConfig(@RequestHeader("Authorization") String authorizationHeader) {
         String token = authorizationHeader.replace("Bearer ", "");
         try {
@@ -100,7 +99,7 @@ public class AlarmsController {
         
     }
 
-    @PostMapping
+    @PostMapping("alarms")
     public ResponseEntity<?> registerAlarmConfig(@RequestBody AlertConfig ac, @RequestHeader("Authorization") String authorizationHeader) {
         String token = authorizationHeader.replace("Bearer ", "");
         
@@ -124,7 +123,7 @@ public class AlarmsController {
         }
     }
 
-    @PutMapping
+    @PutMapping("alarms")
     public ResponseEntity<?> editAlarmConfig(@RequestBody AlertConfig ac, @RequestHeader("Authorization") String authorizationHeader) {
         String token = authorizationHeader.replace("Bearer ", "");
 
