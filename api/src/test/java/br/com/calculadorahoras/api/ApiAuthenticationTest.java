@@ -115,6 +115,17 @@ public class ApiAuthenticationTest {
     }
 
     @Test
+    public void shouldThrowUserCreationError() throws Exception {
+        Mockito.when(userRepo.findByUsername(anyString())).thenThrow(new RuntimeException());
+
+        mockMvc.perform(post("/auth/signup")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{ \"username\": \"TesterUnit\", \"password\": \"testPass123\", \"role_id\": 1 }"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(content().json("{\"errorMessage\":\"Erro no processamento: java.lang.RuntimeException\"}"));
+    }
+
+    @Test
     public void shouldMakeLogin() throws Exception {
 
         Users registeredUser = new Users();
@@ -147,6 +158,17 @@ public class ApiAuthenticationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{ \"username\": \"NotUser\", \"password\": \"wrongPass\" }"))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void shouldThrowLoginError() throws Exception {
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenThrow(new RuntimeException());
+    
+        mockMvc.perform(post("/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{ \"username\": \"NotUser\", \"password\": \"wrongPass\" }"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(content().json("{\"errorMessage\":\"Erro no processamento: java.lang.RuntimeException\"}"));
     }
 
 }

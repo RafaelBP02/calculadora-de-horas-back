@@ -60,7 +60,7 @@ public class AuthenticationController {
                 return ResponseEntity.ok().body("{\"concluido\":\"" + user.getName() + " efetuou seu cadastro com sucesso!\"}");
             }
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(new ErrorResponse("Erro no processamento: " + e.getMessage()));
+            return ResponseEntity.internalServerError().body(new ErrorResponse("Erro no processamento: " + e));
         }  
     }
 
@@ -79,7 +79,7 @@ public class AuthenticationController {
             else
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(new ErrorResponse("Erro no processamento: " + e.getMessage()));
+            return ResponseEntity.internalServerError().body(new ErrorResponse("Erro no processamento: " + e));
         }
         
         
