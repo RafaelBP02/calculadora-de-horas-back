@@ -333,4 +333,50 @@ public class ApiAlarmControllerTest {
 
     }
 
+    @Test
+    @WithMockUser(username = "Leoncio", roles = { "USER" })
+    public void shouldFindConfigByIdV2() throws Exception {
+
+        UserTokenSubjectBody validToken = new UserTokenSubjectBody("Leoncio", 5);
+        ObjectMapper objectMapper = new ObjectMapper();
+        String validJsonToken = objectMapper.writeValueAsString(validToken);
+
+        when(tokenService.validateToken("valid_token")).thenReturn(validJsonToken);
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/v2/alarms", 5)
+                .header("Authorization", "Bearer valid_token"))
+                .andExpect(MockMvcResultMatchers.status().isOk());
+    }
+
+    @Test 
+    @WithMockUser(username = "Leoncio", roles = { "USER" })
+    public void shouldNotFindConfigByIdv2() throws Exception {
+        UserTokenSubjectBody validToken = new UserTokenSubjectBody("Leoncio", 5);
+        ObjectMapper objectMapper = new ObjectMapper();
+        String validJsonToken = objectMapper.writeValueAsString(validToken);
+
+        when(tokenService.validateToken("valid_token")).thenReturn(validJsonToken);
+        when(alertRepo.findByUserId(anyInt())).thenReturn(null);
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/v2/alarms", 5)
+                .header("Authorization", "Bearer valid_token"))
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                .andExpect(content().json(
+                    "{\"errorMessage\":\"Esse usuario não possui um alerta configurado\"}"));
+    }
+
+    @Test 
+    @WithMockUser(username = "Leoncio", roles = { "USER" })
+    public void shouldThrowErrorWhenFindConfigByIdv2() throws Exception {
+        UserTokenSubjectBody validToken = new UserTokenSubjectBody("Leoncio", 5);
+        ObjectMapper objectMapper = new ObjectMapper();
+        String validJsonToken = objectMapper.writeValueAsString(validToken);
+
+        when(tokenService.validateToken("valid_token")).thenReturn(validJsonToken);
+        when(alertRepo.findByUserId(anyInt())).thenThrow(new RuntimeException());
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/v2/alarms", 5)
+                .header("Authorization", "Bearer valid_token"))
+                .andExpect(MockMvcResultMatchers.status().isInternalServerError());
+    }
 }
