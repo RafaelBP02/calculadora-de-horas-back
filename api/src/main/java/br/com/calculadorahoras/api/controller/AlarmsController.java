@@ -26,7 +26,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 @RestController
 @CrossOrigin(origins = "*")
-@RequestMapping("alarms")
 public class AlarmsController {
 
     @Autowired
@@ -50,7 +49,9 @@ public class AlarmsController {
     //     }
     // }
 
-    @GetMapping("/{id}")
+
+    //Deprecated endpoint
+    @GetMapping("alarms/{id}")
     public ResponseEntity<?> selectAlarmConfig(@PathVariable Integer id, @RequestHeader("Authorization") String authorizationHeader) {
         String token = authorizationHeader.replace("Bearer ", "");
         try {
@@ -77,7 +78,28 @@ public class AlarmsController {
         
     }
 
-    @PostMapping
+    @GetMapping("v2/alarms")
+    public ResponseEntity<?> selectAlarmConfig(@RequestHeader("Authorization") String authorizationHeader) {
+        String token = authorizationHeader.replace("Bearer ", "");
+        try {
+            UserTokenSubjectBody verified = UserTokenSubjectBody.convertStringToJson(tokenService.validateToken(token));
+            AlertConfig response = alertRepo.findByUserId(verified.getUserId());
+            if (response == null) {
+                return new ResponseEntity<>(
+                    new ErrorResponse("Esse usuario não possui um alerta configurado"), 
+                    HttpStatus.NOT_FOUND);
+            }
+            return new ResponseEntity<>(response, HttpStatus.OK);    
+
+        } catch (Exception e) {
+            return new ResponseEntity<>(
+                new ErrorResponse("Erro no processamento: " + e), 
+                HttpStatus.INTERNAL_SERVER_ERROR);
+        }      
+        
+    }
+
+    @PostMapping("alarms")
     public ResponseEntity<?> registerAlarmConfig(@RequestBody AlertConfig ac, @RequestHeader("Authorization") String authorizationHeader) {
         String token = authorizationHeader.replace("Bearer ", "");
         
@@ -101,7 +123,7 @@ public class AlarmsController {
         }
     }
 
-    @PutMapping
+    @PutMapping("alarms")
     public ResponseEntity<?> editAlarmConfig(@RequestBody AlertConfig ac, @RequestHeader("Authorization") String authorizationHeader) {
         String token = authorizationHeader.replace("Bearer ", "");
 
