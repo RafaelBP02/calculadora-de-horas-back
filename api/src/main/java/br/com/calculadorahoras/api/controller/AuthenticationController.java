@@ -1,6 +1,8 @@
 package br.com.calculadorahoras.api.controller;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RestController;
 
+import br.com.calculadorahoras.api.dtos.UserDTO;
 import br.com.calculadorahoras.api.model.Roles;
 import br.com.calculadorahoras.api.model.Users;
 import br.com.calculadorahoras.api.repo.RoleRepo;
@@ -96,7 +99,21 @@ public class AuthenticationController {
             if (!response.iterator().hasNext()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Nenhum usuario encontrado"));
             } else {
-                return ResponseEntity.ok(response);
+                List<UserDTO>userDTOList = new ArrayList<>();
+                
+                response.forEach(user -> {
+                    UserDTO userDTO = new UserDTO(
+                        user.getId(),
+                        user.getUsername(), 
+                        user.getName(), 
+                        user.getSureName(), 
+                        user.getWorkPlace(),
+                        user.getRole());
+                    
+                    userDTOList.add(userDTO);
+                });
+
+                return ResponseEntity.ok(userDTOList);
             }
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(new ErrorResponse("Erro no processamento: " + e));
