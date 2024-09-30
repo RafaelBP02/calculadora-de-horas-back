@@ -34,9 +34,6 @@ public class AlarmsController {
     @Autowired
     private TokenService tokenService;
 
-    @Autowired
-    private UserRepo userRepo;
-
     @GetMapping("alarms/all")
     public ResponseEntity<?> selectAllAlarmConfigs(@RequestHeader("Authorization") String authorizationHeader) {
         try {

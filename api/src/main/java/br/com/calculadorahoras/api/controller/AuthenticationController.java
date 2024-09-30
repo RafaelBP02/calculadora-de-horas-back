@@ -21,6 +21,10 @@ import br.com.calculadorahoras.utils.ErrorResponse;
 
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 
 
@@ -84,5 +88,20 @@ public class AuthenticationController {
         
         
     }
+
+    @GetMapping("users/all")
+    public ResponseEntity<?> listAllUsers(@RequestHeader("Authorization") String authorizationHeader) {
+        try {
+            Iterable<Users> response = userRepo.findAll();
+            if (!response.iterator().hasNext()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Nenhum usuario encontrado"));
+            } else {
+                return ResponseEntity.ok(response);
+            }
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(new ErrorResponse("Erro no processamento: " + e));
+        }
+    }
+    
 
 }
