@@ -39,12 +39,9 @@ public class AlarmsController {
 
     @GetMapping("alarms/all")
     public ResponseEntity<?> selectAllAlarmConfigs(@RequestHeader("Authorization") String authorizationHeader) {
-        String token = authorizationHeader.replace("Bearer ", "");
-        
         try {
             Iterable<AlertConfig> response = alertRepo.findAll();
             if (!response.iterator().hasNext()) {
-                // retorna status 500 se a colecao de elementos estiver vazia
                 return new ResponseEntity<>(new ErrorResponse(), HttpStatus.NOT_FOUND);
             } else {
                 return ResponseEntity.ok(response);
