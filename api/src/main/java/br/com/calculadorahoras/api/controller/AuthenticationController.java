@@ -14,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RestController;
 
+import br.com.calculadorahoras.api.dtos.LoginDTO;
 import br.com.calculadorahoras.api.dtos.UserDTO;
 import br.com.calculadorahoras.api.model.AlertConfig;
 import br.com.calculadorahoras.api.model.Roles;
@@ -75,9 +76,9 @@ public class AuthenticationController {
     }
 
     @PostMapping("/auth/login")
-    public ResponseEntity<?> login(@RequestBody Users user) {
+    public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO) {
         try {
-            var userPassword = new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword());
+            var userPassword = new UsernamePasswordAuthenticationToken(loginDTO.username(), loginDTO.password());
             var auth = this.authenticationManager.authenticate(userPassword);
             if(auth.isAuthenticated()){
                 var token = tokenService.generateToken((Users) auth.getPrincipal());
