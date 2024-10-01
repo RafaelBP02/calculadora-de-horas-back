@@ -39,7 +39,8 @@ public class AlarmsController {
         try {
             Iterable<AlertConfig> response = alertRepo.findAll();
             if (!response.iterator().hasNext()) {
-                return new ResponseEntity<>(new ErrorResponse(), HttpStatus.NOT_FOUND);
+                return new ResponseEntity<>(new ErrorResponse("Erro. Não foi encontrado nenhum alarme cadastrado. Tente mais tarde"),
+                                                                 HttpStatus.NOT_FOUND);
             } else {
                 return ResponseEntity.ok(response);
             }
