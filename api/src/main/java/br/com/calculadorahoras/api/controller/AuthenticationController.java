@@ -126,10 +126,10 @@ public class AuthenticationController {
     @PutMapping("users/update")
     public ResponseEntity<?> updateUser(@RequestBody UserDTO uDto, @RequestHeader("Authorization") String authorizationHeader){
         String token = authorizationHeader.replace("Bearer ", "");
-        
         try {
             UserTokenSubjectBody verified = UserTokenSubjectBody.convertStringToJson(tokenService.validateToken(token));
-            if(verified.getUserId() == uDto.id()){
+            String role = tokenService.getClaim(token, "papel");
+            if(verified.getUserId() == uDto.id() || role.equals("ADMINISTRADOR")){
                 Users originalData = userRepo.findById(uDto.id()).orElseThrow();
             
                 originalData.setWorkPlace(uDto.workplace());

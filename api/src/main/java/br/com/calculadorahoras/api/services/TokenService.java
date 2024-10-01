@@ -33,6 +33,7 @@ public class TokenService {
             String token = JWT.create()
                     .withIssuer("auth-api")
                     .withSubject(subject)
+                    .withClaim("papel", user.getRole().getRoleName())
                     .withExpiresAt(genExpirationDate())
                     .sign(algorithm);
 
@@ -53,6 +54,22 @@ public class TokenService {
                     .getSubject();
         } catch (JWTVerificationException exception) {
             return "erro na validacao";
+        }
+    }
+
+    public String getClaim(String token, String claim){
+        try {
+            Algorithm algorithm = Algorithm.HMAC256(secret);
+
+            return JWT.require(algorithm)
+                    .withIssuer("auth-api")
+                    .build()
+                    .verify(token)
+                    .getClaim(claim)
+                    .asString();
+            
+        } catch (JWTVerificationException exception) {
+            throw new RuntimeException("Erro ao verificar o token", exception);
         }
     }
 
