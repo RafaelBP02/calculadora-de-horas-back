@@ -10,6 +10,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.util.Optional;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -25,14 +27,19 @@ import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import br.com.calculadorahoras.api.dtos.UserDTO;
 import br.com.calculadorahoras.api.model.Roles;
 import br.com.calculadorahoras.api.model.Users;
 import br.com.calculadorahoras.api.repo.RoleRepo;
 import br.com.calculadorahoras.api.repo.UserRepo;
 import br.com.calculadorahoras.api.services.TokenService;
+import br.com.calculadorahoras.utils.UserTokenSubjectBody;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -170,5 +177,72 @@ public class ApiAuthenticationTest {
                 .andExpect(status().isInternalServerError())
                 .andExpect(content().json("{\"errorMessage\":\"Erro no processamento: java.lang.RuntimeException\"}"));
     }
+
+    @Test
+    @WithMockUser(username = "Picapau", roles = { "ADMIN" })
+    public void shouldListAllUsers() throws Exception{
+        UserDTO userDTO = new UserDTO(
+                        user.getId(),
+                        user.getUsername(), 
+                        user.getName(), 
+                        user.getSureName(), 
+                        user.getWorkPlace(),
+                        user.getRole());
+                    
+        ObjectMapper objectUserMapper = new ObjectMapper();
+        String dtoJson = objectUserMapper.writeValueAsString(userDTO);
+        
+        UserTokenSubjectBody validToken = new UserTokenSubjectBody("Picapau", 1);
+        ObjectMapper objectMapper = new ObjectMapper();
+        String validJsonToken = objectMapper.writeValueAsString(validToken);
+
+        when(tokenService.validateToken("valid_token")).thenReturn(validJsonToken);
+        when(userRepo.findAll()).thenReturn(Arrays.asList(user));
+
+        mockMvc.perform(get("/users/all")
+                .header("Authorization", "Bearer valid_token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(dtoJson))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(username = "Picapau", roles = { "ADMIN" })
+    public void shouldNotListAllUsers() throws Exception{
+                    
+        UserTokenSubjectBody validToken = new UserTokenSubjectBody("Picapau", 1);
+        ObjectMapper objectMapper = new ObjectMapper();
+        String validJsonToken = objectMapper.writeValueAsString(validToken);
+
+        when(tokenService.validateToken("valid_token")).thenReturn(validJsonToken);
+        when(userRepo.findAll()).thenReturn(new ArrayList<Users>());
+
+        mockMvc.perform(get("/users/all")
+                .header("Authorization", "Bearer valid_token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"errorMessage\":\"Nenhum usuario encontrado\"}"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @WithMockUser(username = "Picapau", roles = { "ADMIN" })
+    public void shouldThrowExceptionWhenListAllUsers() throws Exception{
+                    
+        UserTokenSubjectBody validToken = new UserTokenSubjectBody("Picapau", 1);
+        ObjectMapper objectMapper = new ObjectMapper();
+        String validJsonToken = objectMapper.writeValueAsString(validToken);
+
+        when(tokenService.validateToken("valid_token")).thenReturn(validJsonToken);
+        when(userRepo.findAll()).thenThrow(new RuntimeException());
+
+        mockMvc.perform(get("/users/all")
+                .header("Authorization", "Bearer valid_token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"errorMessage\":\"Erro interno\"}"))
+                .andExpect(status().isInternalServerError());
+    }
+
+
+
 
 }
