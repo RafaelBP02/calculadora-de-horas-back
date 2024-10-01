@@ -2,6 +2,7 @@ package br.com.calculadorahoras.api;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,6 +44,14 @@ public class ApiTokenizationTest {
     }
 
     @Test
+    public void shouldThrowGenerateTokenException(){
+
+        assertThrows(RuntimeException.class, () -> {
+            tokenService.generateToken(null);
+        });
+    }
+
+    @Test
     public void shouldValidateToken(){
         Users user = new Users();
         user.setUsername("justAnUser");
@@ -61,6 +70,30 @@ public class ApiTokenizationTest {
         String validation = tokenService.validateToken("invalidToken");
 
         assertEquals("erro na validacao", validation);
+    }
+
+    @Test
+    public void shouldGetClaim(){
+        Users user = new Users();
+        user.setUsername("TestUser@mail.com");
+        user.setPassword("badpassword");
+        user.setRole(roles);
+
+        String token = tokenService.generateToken(user);
+        String claim = tokenService.getClaim(token, "papel");
+
+        assertEquals("USUARIO", claim);
+    }
+
+    @Test
+    public void shouldThrowClaimException(){
+
+        String invalidToken = "tokenInvalido";
+        String claimName = "randomClaim";
+
+        assertThrows(RuntimeException.class, () -> {
+            tokenService.getClaim(invalidToken, claimName);
+        });
     }
 
 }

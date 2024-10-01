@@ -23,9 +23,9 @@ public class TokenService {
     private String secret;
 
     public String generateToken(Users user) {
-        UserTokenSubjectBody utsb = new UserTokenSubjectBody(user.getUsername(), user.getId());
-
+        
         try {
+            UserTokenSubjectBody utsb = new UserTokenSubjectBody(user.getUsername(), user.getId());
             Algorithm algorithm = Algorithm.HMAC256(secret);
             ObjectMapper objectMapper = new ObjectMapper();
             String subject = objectMapper.writeValueAsString(utsb);
