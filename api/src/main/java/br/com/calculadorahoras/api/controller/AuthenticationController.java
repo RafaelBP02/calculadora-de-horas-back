@@ -15,14 +15,17 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.calculadorahoras.api.dtos.UserDTO;
+import br.com.calculadorahoras.api.model.AlertConfig;
 import br.com.calculadorahoras.api.model.Roles;
 import br.com.calculadorahoras.api.model.Users;
 import br.com.calculadorahoras.api.repo.RoleRepo;
 import br.com.calculadorahoras.api.repo.UserRepo;
 import br.com.calculadorahoras.api.services.TokenService;
 import br.com.calculadorahoras.utils.ErrorResponse;
+import br.com.calculadorahoras.utils.UserTokenSubjectBody;
 
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -117,6 +120,29 @@ public class AuthenticationController {
             }
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(new ErrorResponse("Erro no processamento: " + e));
+        }
+    }
+
+    @PutMapping("users/update")
+    public ResponseEntity<?> updateUser(@RequestBody UserDTO uDto, @RequestHeader("Authorization") String authorizationHeader){
+        String token = authorizationHeader.replace("Bearer ", "");
+        
+        try {
+            UserTokenSubjectBody verified = UserTokenSubjectBody.convertStringToJson(tokenService.validateToken(token));
+            if(verified.getUserId() == uDto.id()){
+                Users originalData = userRepo.findById(uDto.id()).orElseThrow();
+            
+                originalData.setWorkPlace(uDto.workplace());
+                userRepo.save(originalData);
+      
+                return ResponseEntity.ok().body("{\"sucesso\":\"usuario atualizado sem erros!\"}");
+            }
+            else{
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse("Este usuario nao possui permissao para realizar essa operação"));
+            }
+            
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ErrorResponse(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
     
