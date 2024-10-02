@@ -242,6 +242,95 @@ public class ApiAuthenticationTest {
                 .andExpect(status().isInternalServerError());
     }
 
+    @Test 
+    @WithMockUser(username = "Picapau", roles = { "ADMIN" })
+    public void shouldUpdateUser() throws Exception{
+
+        UserDTO userDTO = new UserDTO(
+            1,
+            "testUser@mail.com", 
+            "name", 
+            "surename", 
+            "updatedWorkplace",
+            role);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        String dtoJson = objectMapper.writeValueAsString(userDTO);
+
+        UserTokenSubjectBody validToken = new UserTokenSubjectBody("Picapau", 5);
+        ObjectMapper objectMapper2 = new ObjectMapper();
+        String validJsonToken = objectMapper2.writeValueAsString(validToken);
+
+        when(tokenService.validateToken("valid_token")).thenReturn(validJsonToken);
+        when(userRepo.findById(1)).thenReturn(Optional.of(user));
+        when(tokenService.getClaim(anyString(), anyString())).thenReturn("ADMINISTRADOR");
+
+        mockMvc.perform(put("/users/update")
+                .header("Authorization", "Bearer valid_token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(dtoJson))
+                .andExpect(status().isOk())
+                .andExpect(content().json("{\"sucesso\":\"usuario atualizado sem erros!\"}"));
+
+    }
+
+    @Test 
+    @WithMockUser(username = "Picapau", roles = { "USER" })
+    public void shouldNotHavePermissionToUpdateUser() throws Exception{
+
+        UserDTO userDTO = new UserDTO(
+            1,
+            "testUser@mail.com", 
+            "name", 
+            "surename", 
+            "updatedWorkplace",
+            role);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        String dtoJson = objectMapper.writeValueAsString(userDTO);
+
+        UserTokenSubjectBody validToken = new UserTokenSubjectBody("Picapau", 5);
+        ObjectMapper objectMapper2 = new ObjectMapper();
+        String validJsonToken = objectMapper2.writeValueAsString(validToken);
+
+        when(tokenService.validateToken("valid_token")).thenReturn(validJsonToken);
+        when(userRepo.findById(1)).thenReturn(Optional.of(user));
+        when(tokenService.getClaim(anyString(), anyString())).thenReturn("USUARIO");
+
+        mockMvc.perform(put("/users/update")
+                .header("Authorization", "Bearer valid_token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(dtoJson))
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().json("{\"errorMessage\":\"Este usuario nao possui permissao para realizar essa operação\"}"));
+
+    }
+
+    @Test 
+    @WithMockUser(username = "Picapau", roles = { "ADMINISTRADOR" })
+    public void shouldThrowUpdateUserException() throws Exception{
+
+        UserTokenSubjectBody validToken = new UserTokenSubjectBody("Picapau", 5);
+        ObjectMapper objectMapper2 = new ObjectMapper();
+        String validJsonToken = objectMapper2.writeValueAsString(validToken);
+
+        when(tokenService.validateToken("valid_token")).thenReturn(validJsonToken);
+        when(userRepo.findById(1)).thenReturn(Optional.of(user));
+        when(tokenService.getClaim(anyString(), anyString())).thenReturn("ADMINISTRADOR");
+
+        mockMvc.perform(put("/users/update")
+                .header("Authorization", "Bearer valid_token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}"))
+                .andExpect(status().isInternalServerError());
+
+    }
+
+    
+
+    
+
+
 
 
 
