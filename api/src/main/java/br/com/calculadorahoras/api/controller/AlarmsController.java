@@ -34,20 +34,23 @@ public class AlarmsController {
     @Autowired
     private TokenService tokenService;
 
-    @Autowired
-    private UserRepo userRepo;
-
-    // Habilitar o endpoint caso exista uma funcionalidade onde o Administrador possa editar essas configuracoes
-    // @GetMapping
-    // public ResponseEntity<?> selectAllAlarmConfigs() {
-    //     Iterable<AlertConfig> response = alertRepo.findAll();
-    //     if (!response.iterator().hasNext()) {
-    //         // retorna status 500 se a colecao de elementos estiver vazia
-    //         return new ResponseEntity<>(new ErrorResponse(), HttpStatus.INTERNAL_SERVER_ERROR);
-    //     } else {
-    //         return ResponseEntity.ok(response);
-    //     }
-    // }
+    @GetMapping("alarms/all")
+    public ResponseEntity<?> selectAllAlarmConfigs(@RequestHeader("Authorization") String authorizationHeader) {
+        try {
+            Iterable<AlertConfig> response = alertRepo.findAll();
+            if (!response.iterator().hasNext()) {
+                return new ResponseEntity<>(new ErrorResponse("Erro. Não foi encontrado nenhum alarme cadastrado. Tente mais tarde"),
+                                                                 HttpStatus.NOT_FOUND);
+            } else {
+                return ResponseEntity.ok(response);
+            }
+        } catch (Exception e) {
+            return new ResponseEntity<>(
+                new ErrorResponse("Erro no processamento: " + e), 
+                HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        
+    }
 
 
     //Deprecated endpoint

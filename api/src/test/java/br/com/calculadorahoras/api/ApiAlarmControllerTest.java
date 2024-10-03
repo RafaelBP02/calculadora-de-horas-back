@@ -7,6 +7,7 @@ import br.com.calculadorahoras.api.repo.UserRepo;
 import br.com.calculadorahoras.api.services.TokenService;
 import br.com.calculadorahoras.utils.UserTokenSubjectBody;
 
+import org.assertj.core.util.diff.Delta.TYPE;
 import org.json.JSONException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,6 +27,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.sql.Time;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -118,30 +120,6 @@ public class ApiAlarmControllerTest {
                 .andExpect(MockMvcResultMatchers.status().isUnauthorized());
     }
 
-    /*
-     * DESABILITA TESTES DO ENDPOINT INATIVO
-     * 
-     * @Test
-     * 
-     * @WithMockUser(username = "user", roles = {"USER"})
-     * public void shouldFindAllConfigurtions() throws Exception {
-     * mockMvc.perform(MockMvcRequestBuilders.get("/alarms"))
-     * .andExpect(MockMvcResultMatchers.status().isOk());
-     * }
-     * 
-     * @Test
-     * 
-     * @WithMockUser(username = "user", roles = {"USER"})
-     * public void shouldNotFindAllConfigurtions() throws Exception {
-     * given(repo.findAll()).willReturn(new ArrayList<AlertConfig>());
-     * 
-     * mockMvc.perform(MockMvcRequestBuilders.get("/alarms"))
-     * .andExpect(MockMvcResultMatchers.status().isInternalServerError())
-     * .andExpect(content()
-     * .json("{\"errorMessage\":\"Erro na comunicação com o servidor. Por favor tente mais tarde\"}"
-     * ));
-     * }
-     */
     @Test
     @WithMockUser(username = "user", roles = { "USER" })
     public void shouldEditAlarmConfig() throws Exception {
@@ -379,4 +357,70 @@ public class ApiAlarmControllerTest {
                 .header("Authorization", "Bearer valid_token"))
                 .andExpect(MockMvcResultMatchers.status().isInternalServerError());
     }
+
+    @Test
+    @WithMockUser(username = "Picapau", roles = { "ADMIN" })
+    public void shouldListAllAlarms() throws Exception {
+
+        UserTokenSubjectBody validToken = new UserTokenSubjectBody("Picapau", 1);
+        ObjectMapper objectMapper = new ObjectMapper();
+        String validJsonToken = objectMapper.writeValueAsString(validToken);
+
+        when(tokenService.validateToken("valid_token")).thenReturn(validJsonToken);
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/alarms/all")
+                .header("Authorization", "Bearer valid_token"))
+                .andExpect(MockMvcResultMatchers.status().isOk());
+    }
+
+    @Test
+    @WithMockUser(username = "Picapau", roles = { "ADMIN" })
+    public void shouldNotListAlarms() throws Exception {
+
+        UserTokenSubjectBody validToken = new UserTokenSubjectBody("Picapau", 1);
+        ObjectMapper objectMapper = new ObjectMapper();
+        String validJsonToken = objectMapper.writeValueAsString(validToken);
+
+        when(tokenService.validateToken("valid_token")).thenReturn(validJsonToken);
+        when(alertRepo.findAll()).thenReturn(new ArrayList<AlertConfig>());
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/alarms/all")
+                .header("Authorization", "Bearer valid_token"))
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                .andExpect(content().json(
+                    "{\"errorMessage\":\"Erro. Não foi encontrado nenhum alarme cadastrado. Tente mais tarde\"}"));
+    }
+
+    @Test
+    @WithMockUser(username = "Picapau", roles = { "USER" })
+    public void shouldNotHavePermissionToListAllAlarms() throws Exception {
+
+        UserTokenSubjectBody validToken = new UserTokenSubjectBody("Leoncio", 5);
+        ObjectMapper objectMapper = new ObjectMapper();
+        String validJsonToken = objectMapper.writeValueAsString(validToken);
+
+        when(tokenService.validateToken("valid_token")).thenReturn(validJsonToken);
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/alarms/all")
+                .header("Authorization", "Bearer valid_token"))
+                .andExpect(MockMvcResultMatchers.status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(username = "Picapau", roles = { "ADMIN" })
+    public void shouldThrowErrorWhenFindAllAlerts() throws Exception{
+
+        UserTokenSubjectBody validToken = new UserTokenSubjectBody("Picapau", 1);
+        ObjectMapper objectMapper = new ObjectMapper();
+        String validJsonToken = objectMapper.writeValueAsString(validToken);
+
+        when(tokenService.validateToken("valid_token")).thenReturn(validJsonToken);
+        when(alertRepo.findAll()).thenReturn(null);
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/alarms/all")
+                .header("Authorization", "Bearer valid_token"))
+                .andExpect(MockMvcResultMatchers.status().isInternalServerError());
+                   
+    }
+
 }

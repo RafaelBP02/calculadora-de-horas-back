@@ -1,6 +1,8 @@
 package br.com.calculadorahoras.api.controller;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,15 +14,24 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RestController;
 
+import br.com.calculadorahoras.api.dtos.LoginDTO;
+import br.com.calculadorahoras.api.dtos.UserDTO;
+import br.com.calculadorahoras.api.model.AlertConfig;
 import br.com.calculadorahoras.api.model.Roles;
 import br.com.calculadorahoras.api.model.Users;
 import br.com.calculadorahoras.api.repo.RoleRepo;
 import br.com.calculadorahoras.api.repo.UserRepo;
 import br.com.calculadorahoras.api.services.TokenService;
 import br.com.calculadorahoras.utils.ErrorResponse;
+import br.com.calculadorahoras.utils.UserTokenSubjectBody;
 
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 
 
@@ -65,9 +76,9 @@ public class AuthenticationController {
     }
 
     @PostMapping("/auth/login")
-    public ResponseEntity<?> login(@RequestBody Users user) {
+    public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO) {
         try {
-            var userPassword = new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword());
+            var userPassword = new UsernamePasswordAuthenticationToken(loginDTO.username(), loginDTO.password());
             var auth = this.authenticationManager.authenticate(userPassword);
             if(auth.isAuthenticated()){
                 var token = tokenService.generateToken((Users) auth.getPrincipal());
@@ -84,5 +95,57 @@ public class AuthenticationController {
         
         
     }
+
+    @GetMapping("users/all")
+    public ResponseEntity<?> listAllUsers(@RequestHeader("Authorization") String authorizationHeader) {
+        try {
+            Iterable<Users> response = userRepo.findAll();
+            if (!response.iterator().hasNext()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Nenhum usuario encontrado"));
+            } else {
+                List<UserDTO>userDTOList = new ArrayList<>();
+                
+                response.forEach(user -> {
+                    UserDTO userDTO = new UserDTO(
+                        user.getId(),
+                        user.getUsername(), 
+                        user.getName(), 
+                        user.getSureName(), 
+                        user.getWorkPlace(),
+                        user.getRole());
+                    
+                    userDTOList.add(userDTO);
+                });
+
+                return ResponseEntity.ok(userDTOList);
+            }
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(new ErrorResponse("Erro no processamento: " + e));
+        }
+    }
+
+    @PutMapping("users/update")
+    public ResponseEntity<?> updateUser(@RequestBody UserDTO uDto, @RequestHeader("Authorization") String authorizationHeader){
+        String token = authorizationHeader.replace("Bearer ", "");
+        try {
+            UserTokenSubjectBody verified = UserTokenSubjectBody.convertStringToJson(tokenService.validateToken(token));
+            String role = tokenService.getClaim(token, "papel");
+            if(verified.getUserId() == uDto.id() || role.equals("ADMINISTRADOR")){
+                Users originalData = userRepo.findById(uDto.id()).orElseThrow();
+            
+                originalData.setWorkPlace(uDto.workplace());
+                userRepo.save(originalData);
+      
+                return ResponseEntity.ok().body("{\"sucesso\":\"usuario atualizado sem erros!\"}");
+            }
+            else{
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse("Este usuario nao possui permissao para realizar essa operação"));
+            }
+            
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ErrorResponse(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    
 
 }
