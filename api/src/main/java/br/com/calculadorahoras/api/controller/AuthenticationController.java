@@ -7,9 +7,11 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RestController;
@@ -80,16 +82,20 @@ public class AuthenticationController {
         try {
             var userPassword = new UsernamePasswordAuthenticationToken(loginDTO.username(), loginDTO.password());
             var auth = this.authenticationManager.authenticate(userPassword);
-            if(auth.isAuthenticated()){
+            // if(auth.isAuthenticated()){
                 var token = tokenService.generateToken((Users) auth.getPrincipal());
                 Map<String, String> tokenJson = new HashMap<>();
                 tokenJson.put("token", token);
                 
                 return ResponseEntity.ok(tokenJson);
-            }
-            else
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        } catch (Exception e) {
+            // }
+            // else
+            //     return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        } 
+        catch (AuthenticationException e){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+        }
+        catch (Exception e) {
             return ResponseEntity.internalServerError().body(new ErrorResponse("Erro no processamento: " + e));
         }
         
