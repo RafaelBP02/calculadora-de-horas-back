@@ -93,7 +93,7 @@ public class AuthenticationController {
             //     return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         } 
         catch (AuthenticationException e){
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse(e.getMessage()));
         }
         catch (Exception e) {
             return ResponseEntity.internalServerError().body(new ErrorResponse("Erro no processamento: " + e));
