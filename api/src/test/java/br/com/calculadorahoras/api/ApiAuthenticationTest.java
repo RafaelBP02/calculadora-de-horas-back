@@ -24,6 +24,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
@@ -173,8 +174,20 @@ public class ApiAuthenticationTest {
     }
 
     @Test
+    public void shoulNotFindUserLogin() throws Exception {
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
+            .thenThrow(new InternalAuthenticationServiceException("Usuario inexistente"));
+        
+        mockMvc.perform(post("/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{ \"username\": \"NotUser\", \"password\": \"wrongPass\" }"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
     public void shouldThrowLoginError() throws Exception {
-        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenThrow(new RuntimeException());
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
+            .thenThrow(new RuntimeException());
     
         mockMvc.perform(post("/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
