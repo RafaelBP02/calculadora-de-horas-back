@@ -8,14 +8,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.auth0.jwt.JWT;
+import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.auth0.jwt.interfaces.DecodedJWT;
 
 import br.com.calculadorahoras.api.model.Users;
-import br.com.calculadorahoras.utils.UserTokenSubjectBody;
 
 @Service
 public class TokenService {
@@ -25,10 +24,8 @@ public class TokenService {
     public String generateToken(Users user) {
         
         try {
-            UserTokenSubjectBody utsb = new UserTokenSubjectBody(user.getUsername(), user.getId());
             Algorithm algorithm = Algorithm.HMAC256(secret);
-            ObjectMapper objectMapper = new ObjectMapper();
-            String subject = objectMapper.writeValueAsString(utsb);
+            String subject = new String("{\"username\":\""+user.getUsername()+"\",\"userId\":"+user.getId()+"}");
             
             String token = JWT.create()
                     .withIssuer("auth-api")
@@ -38,24 +35,29 @@ public class TokenService {
                     .sign(algorithm);
 
             return token;
-        } catch (JWTCreationException | JsonProcessingException exception) {
+        } catch (JWTCreationException exception) {
             throw new RuntimeException("Error while generating token,", exception);
         }
     }
 
     public String validateToken(String token) {
-        try {
-            Algorithm algorithm = Algorithm.HMAC256(secret);
+    try {
+        Algorithm algorithm = Algorithm.HMAC256(secret);
 
-            return JWT.require(algorithm)
-                    .withIssuer("auth-api")
-                    .build()
-                    .verify(token)
-                    .getSubject();
-        } catch (JWTVerificationException exception) {
-            return "erro na validacao";
-        }
+        JWTVerifier verifier = JWT.require(algorithm)
+                .withIssuer("auth-api")
+                .build();
+
+        DecodedJWT jwt = verifier.verify(token);
+        String subject = jwt.getSubject();
+        System.out.println("Token validado com sucesso. Subject: " + subject);
+
+        return subject;
+    } catch (JWTVerificationException exception) {
+        System.err.println("Erro na validação do token: " + exception.getMessage());
+        return "erro na validacao";
     }
+}
 
     public String getClaim(String token, String claim){
         try {
