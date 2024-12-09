@@ -31,7 +31,8 @@ public class SecurityFilter extends OncePerRequestFilter {
         
         var token = this.recoverToken(request);
         if (token != null) {
-            UserTokenSubjectBody login =  UserTokenSubjectBody.convertStringToJson(tokenService.validateToken(token));
+            String tokenSubject = tokenService.validateToken(token);
+            UserTokenSubjectBody login =  new UserTokenSubjectBody(tokenSubject);
             if (login != null) {
                 UserDetails user = userRepo.findByUsername(login.getUsername());
 
